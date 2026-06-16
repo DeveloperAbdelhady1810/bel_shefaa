@@ -86,78 +86,332 @@ class _OnboardingAddressScreenState
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.sizeOf(context);
     return Scaffold(
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SizedBox(height: 12),
-              const Icon(Icons.location_on, size: 56, color: kMedicalBlue),
-              const SizedBox(height: 16),
-              Text('أضف عنوانك',
-                  style: Theme.of(context)
-                      .textTheme
-                      .headlineSmall
-                      ?.copyWith(fontWeight: FontWeight.w700),
-                  textAlign: TextAlign.center),
-              const SizedBox(height: 8),
-              Text('نحتاج عنوانك لتوصيل دوائك',
-                  style: TextStyle(color: Colors.grey[600]),
-                  textAlign: TextAlign.center),
-              const SizedBox(height: 32),
-              OutlinedButton.icon(
-                onPressed: _locating ? null : _useGps,
-                icon: _locating
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child:
-                            CircularProgressIndicator(strokeWidth: 2))
-                    : const Icon(Icons.my_location),
-                label: Text(
-                    _lat != null ? 'تم تحديد الموقع ✓' : 'استخدم موقعي الحالي'),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _lineCtrl,
-                decoration: const InputDecoration(
-                  labelText: 'العنوان التفصيلي *',
-                  hintText: 'مثال: 12 شارع النيل، الدور الثالث',
-                  prefixIcon: Icon(Icons.home_outlined),
+      body: Stack(
+        children: [
+          // ── Gradient header ────────────────────────────────────────
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            height: size.height * 0.38,
+            child: Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [kMedicalBlueDark, kMedicalBlue],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
                 ),
               ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: _cityCtrl,
-                decoration: const InputDecoration(
-                  labelText: 'المدينة / الحي',
-                  prefixIcon: Icon(Icons.location_city_outlined),
-                ),
-              ),
-              if (_error != null) ...[
-                const SizedBox(height: 12),
-                Text(_error!,
-                    style: const TextStyle(color: Colors.red),
-                    textAlign: TextAlign.center),
-              ],
-              const Spacer(),
-              _saving
-                  ? const Center(child: CircularProgressIndicator())
-                  : ElevatedButton(
-                      onPressed: _save,
-                      child: const Text('حفظ والمتابعة'),
+              child: SafeArea(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.location_on,
+                        color: Colors.white, size: 64),
+                    const SizedBox(height: 12),
+                    const Text(
+                      'حدد عنوانك',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
-              const SizedBox(height: 8),
-              TextButton(
-                onPressed: () => context.go('/home'),
-                child: const Text('تخطي الآن'),
+                    const SizedBox(height: 4),
+                    Text(
+                      'نوصل دواءك لباب بيتك',
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.70),
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ],
+            ),
           ),
-        ),
+
+          // ── White bottom card (overlapping gradient) ───────────────
+          Positioned(
+            top: size.height * 0.32,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: Container(
+              decoration: const BoxDecoration(
+                color: kSurface,
+                borderRadius:
+                    BorderRadius.vertical(top: Radius.circular(32)),
+              ),
+              child: SingleChildScrollView(
+                padding:
+                    const EdgeInsets.fromLTRB(24, 28, 24, 24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // GPS Button
+                    _locating
+                        ? OutlinedButton.icon(
+                            onPressed: null,
+                            icon: const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(
+                                  strokeWidth: 2, color: kMedicalBlue),
+                            ),
+                            label: const Text('جارٍ تحديد الموقع...'),
+                          )
+                        : _lat != null
+                            ? Container(
+                                height: 56,
+                                decoration: BoxDecoration(
+                                  color: kGreenLight,
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(
+                                      color: kSuccess.withValues(alpha: 0.4)),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.center,
+                                  children: [
+                                    const Icon(Icons.check_circle,
+                                        color: kSuccess, size: 22),
+                                    const SizedBox(width: 8),
+                                    const Text(
+                                      'تم تحديد الموقع ✓',
+                                      style: TextStyle(
+                                          color: kSuccess,
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 15),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    GestureDetector(
+                                      onTap: _useGps,
+                                      child: const Text(
+                                        'تحديث',
+                                        style: TextStyle(
+                                            color: kMedicalBlue,
+                                            fontSize: 12,
+                                            decoration:
+                                                TextDecoration.underline),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              )
+                            : OutlinedButton.icon(
+                                onPressed: _useGps,
+                                icon: const Icon(Icons.my_location),
+                                label:
+                                    const Text('استخدم موقعي الحالي'),
+                              ),
+
+                    const SizedBox(height: 20),
+
+                    // Address line
+                    TextField(
+                      controller: _lineCtrl,
+                      decoration: InputDecoration(
+                        labelText: 'العنوان التفصيلي *',
+                        hintText: 'مثال: 12 شارع النيل، الدور الثالث',
+                        prefixIcon: const Icon(Icons.home_outlined,
+                            color: kTextSecondary),
+                        filled: true,
+                        fillColor: kBg,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide.none,
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide:
+                              const BorderSide(color: Color(0xFFE2E8F0)),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: const BorderSide(
+                              color: kMedicalBlue, width: 2),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 18, vertical: 16),
+                      ),
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    // City
+                    TextField(
+                      controller: _cityCtrl,
+                      decoration: InputDecoration(
+                        labelText: 'المدينة / الحي',
+                        prefixIcon: const Icon(Icons.location_city_outlined,
+                            color: kTextSecondary),
+                        filled: true,
+                        fillColor: kBg,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide.none,
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide:
+                              const BorderSide(color: Color(0xFFE2E8F0)),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: const BorderSide(
+                              color: kMedicalBlue, width: 2),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 18, vertical: 16),
+                      ),
+                    ),
+
+                    // Error
+                    if (_error != null) ...[
+                      const SizedBox(height: 12),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: kError.withValues(alpha: 0.08),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          _error!,
+                          style: const TextStyle(
+                              color: kError, fontSize: 13),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ],
+
+                    const SizedBox(height: 28),
+
+                    // Save button
+                    _GradientButton(
+                      label: 'حفظ والمتابعة',
+                      icon: Icons.check_rounded,
+                      onPressed: _save,
+                      loading: _saving,
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    // Skip
+                    TextButton(
+                      onPressed: () => context.go('/home'),
+                      child: const Text(
+                        'تخطي الآن',
+                        style: TextStyle(
+                            color: kTextSecondary, fontSize: 13),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
+}
+
+// ─── Gradient Button ──────────────────────────────────────────────────────────
+
+class _GradientButton extends StatefulWidget {
+  const _GradientButton({
+    required this.label,
+    required this.onPressed,
+    this.icon,
+    this.loading = false,
+    this.color1 = kMedicalBlue,
+    this.color2 = kMedicalBlueDark,
+  });
+  final String label;
+  final VoidCallback onPressed;
+  final IconData? icon;
+  final bool loading;
+  final Color color1;
+  final Color color2;
+
+  @override
+  State<_GradientButton> createState() => _GradientButtonState();
+}
+
+class _GradientButtonState extends State<_GradientButton>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl = AnimationController(
+      vsync: this, duration: const Duration(milliseconds: 90));
+  late final Animation<double> _scale =
+      Tween(begin: 1.0, end: 0.96).animate(
+          CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut));
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => ScaleTransition(
+        scale: _scale,
+        child: GestureDetector(
+          onTapDown: (_) {
+            if (!widget.loading) _ctrl.forward();
+          },
+          onTapUp: (_) {
+            _ctrl.reverse();
+            if (!widget.loading) widget.onPressed();
+          },
+          onTapCancel: () => _ctrl.reverse(),
+          child: Container(
+            height: 56,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [widget.color1, widget.color2],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: widget.color1.withValues(alpha: 0.35),
+                  blurRadius: 16,
+                  offset: const Offset(0, 6),
+                ),
+              ],
+            ),
+            child: Center(
+              child: widget.loading
+                  ? const SizedBox(
+                      width: 22,
+                      height: 22,
+                      child: CircularProgressIndicator(
+                          color: Colors.white, strokeWidth: 2.5),
+                    )
+                  : Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (widget.icon != null) ...[
+                          Icon(widget.icon, color: Colors.white, size: 20),
+                          const SizedBox(width: 8),
+                        ],
+                        Text(
+                          widget.label,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ],
+                    ),
+            ),
+          ),
+        ),
+      );
 }

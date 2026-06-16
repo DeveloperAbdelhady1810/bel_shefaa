@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
+import '../../../core/theme/app_theme.dart';
 import '../data/order_repository.dart';
 
 class PaymentScreen extends ConsumerStatefulWidget {
@@ -75,7 +76,10 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: kBg,
       appBar: AppBar(
+        backgroundColor: kMedicalBlue,
+        foregroundColor: Colors.white,
         title: const Text('الدفع الإلكتروني'),
         leading: IconButton(
           icon: const Icon(Icons.close),
@@ -84,8 +88,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
               context: context,
               builder: (_) => AlertDialog(
                 title: const Text('إلغاء الدفع؟'),
-                content: const Text(
-                    'هل تريد إلغاء عملية الدفع والعودة؟'),
+                content: const Text('هل تريد إلغاء عملية الدفع والعودة؟'),
                 actions: [
                   TextButton(
                     onPressed: () => Navigator.pop(context),
@@ -110,38 +113,180 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
             Center(
               child: Padding(
                 padding: const EdgeInsets.all(24),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.error_outline,
-                        size: 48, color: Colors.red),
-                    const SizedBox(height: 8),
-                    Text(_error!,
-                        style: const TextStyle(color: Colors.red),
-                        textAlign: TextAlign.center),
-                    const SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: () {
-                        setState(() {
-                          _error = null;
-                          _loading = true;
-                        });
-                        _fetchPaymentUrl();
-                      },
-                      child: const Text('إعادة المحاولة'),
-                    ),
-                  ],
+                child: Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: kSurface,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: const [
+                      BoxShadow(
+                          color: kCardShadowBlue,
+                          blurRadius: 24,
+                          offset: Offset(0, 6)),
+                    ],
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 64,
+                        height: 64,
+                        decoration: BoxDecoration(
+                          color: kError.withValues(alpha: 0.10),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.error_outline,
+                            color: kError, size: 34),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(_error!,
+                          style: const TextStyle(color: kError),
+                          textAlign: TextAlign.center),
+                      const SizedBox(height: 20),
+                      _GradientButton(
+                        label: 'إعادة المحاولة',
+                        icon: Icons.refresh,
+                        onPressed: () {
+                          setState(() {
+                            _error = null;
+                            _loading = true;
+                          });
+                          _fetchPaymentUrl();
+                        },
+                      ),
+                    ],
+                  ),
                 ),
               ),
             )
           else if (_webController != null)
             WebViewWidget(controller: _webController!)
           else
-            const Center(child: CircularProgressIndicator()),
+            const Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SizedBox(
+                    width: 52,
+                    height: 52,
+                    child: CircularProgressIndicator(
+                        color: kMedicalBlue, strokeWidth: 3),
+                  ),
+                  SizedBox(height: 16),
+                  Text(
+                    'جارٍ تحميل صفحة الدفع...',
+                    style: TextStyle(color: kTextSecondary, fontSize: 14),
+                  ),
+                ],
+              ),
+            ),
           if (_loading && _webController != null)
-            const Center(child: CircularProgressIndicator()),
+            const Center(
+              child: SizedBox(
+                width: 52,
+                height: 52,
+                child: CircularProgressIndicator(
+                    color: kMedicalBlue, strokeWidth: 3),
+              ),
+            ),
         ],
       ),
     );
   }
+}
+
+// ─── Gradient Button ──────────────────────────────────────────────────────────
+
+class _GradientButton extends StatefulWidget {
+  const _GradientButton({
+    required this.label,
+    required this.onPressed,
+    this.icon,
+    this.loading = false,
+    this.color1 = kMedicalBlue,
+    this.color2 = kMedicalBlueDark,
+  });
+  final String label;
+  final VoidCallback onPressed;
+  final IconData? icon;
+  final bool loading;
+  final Color color1;
+  final Color color2;
+
+  @override
+  State<_GradientButton> createState() => _GradientButtonState();
+}
+
+class _GradientButtonState extends State<_GradientButton>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl = AnimationController(
+      vsync: this, duration: const Duration(milliseconds: 90));
+  late final Animation<double> _scale =
+      Tween(begin: 1.0, end: 0.96).animate(
+          CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut));
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => ScaleTransition(
+        scale: _scale,
+        child: GestureDetector(
+          onTapDown: (_) {
+            if (!widget.loading) _ctrl.forward();
+          },
+          onTapUp: (_) {
+            _ctrl.reverse();
+            if (!widget.loading) widget.onPressed();
+          },
+          onTapCancel: () => _ctrl.reverse(),
+          child: Container(
+            height: 56,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [widget.color1, widget.color2],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: widget.color1.withValues(alpha: 0.35),
+                  blurRadius: 16,
+                  offset: const Offset(0, 6),
+                ),
+              ],
+            ),
+            child: Center(
+              child: widget.loading
+                  ? const SizedBox(
+                      width: 22,
+                      height: 22,
+                      child: CircularProgressIndicator(
+                          color: Colors.white, strokeWidth: 2.5),
+                    )
+                  : Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (widget.icon != null) ...[
+                          Icon(widget.icon, color: Colors.white, size: 20),
+                          const SizedBox(width: 8),
+                        ],
+                        Text(
+                          widget.label,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ],
+                    ),
+            ),
+          ),
+        ),
+      );
 }

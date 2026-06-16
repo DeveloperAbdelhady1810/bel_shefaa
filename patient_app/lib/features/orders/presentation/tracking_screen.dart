@@ -14,19 +14,24 @@ class TrackingScreen extends ConsumerWidget {
     final orderAsync = ref.watch(orderTrackingProvider(orderId));
 
     return Scaffold(
-      appBar: AppBar(title: const Text('تتبع الطلب')),
+      backgroundColor: kBg,
+      appBar: AppBar(
+        title: const Text('تتبع الطلب'),
+        backgroundColor: kMedicalBlue,
+        foregroundColor: Colors.white,
+      ),
       body: orderAsync.when(
-        loading: () =>
-            const Center(child: CircularProgressIndicator()),
+        loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.error_outline, size: 48, color: Colors.red),
-              const SizedBox(height: 8),
+              const Icon(Icons.error_outline, size: 56, color: kError),
+              const SizedBox(height: 12),
               Text(e.toString(),
-                  style: const TextStyle(color: Colors.red),
+                  style: const TextStyle(color: kError),
                   textAlign: TextAlign.center),
+              const SizedBox(height: 16),
               TextButton(
                 onPressed: () =>
                     ref.invalidate(orderTrackingProvider(orderId)),
@@ -54,68 +59,79 @@ class _OrderTrackingBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final stepIndex = order.status.stepIndex;
-    final isTerminal = order.status.isTerminal;
+    final stepIndex  = order.status.stepIndex;
     final isCancelled =
         order.status == 'cancelled' || order.status == 'failed';
+    final isDelivered = order.status == 'delivered';
+
+    // Hero card color scheme
+    final Color heroColor = isCancelled
+        ? kError
+        : isDelivered
+            ? kSuccess
+            : kMedicalBlue;
+    final IconData heroIcon = isCancelled
+        ? Icons.cancel_outlined
+        : isDelivered
+            ? Icons.check_circle_outline
+            : Icons.local_shipping_outlined;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Status badge
+          // ── Hero status card ──────────────────────────────────────
           Container(
-            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+            padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 20),
             decoration: BoxDecoration(
-              color: isCancelled
-                  ? Colors.red.withValues(alpha:0.1)
-                  : kMedicalBlueLight,
-              borderRadius: BorderRadius.circular(12),
+              gradient: LinearGradient(
+                colors: [
+                  heroColor,
+                  heroColor == kMedicalBlue ? kMedicalBlueDark : heroColor,
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                    color: heroColor.withValues(alpha: 0.30),
+                    blurRadius: 24,
+                    offset: const Offset(0, 8)),
+              ],
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+            child: Column(
               children: [
-                Icon(
-                  isCancelled
-                      ? Icons.cancel_outlined
-                      : isTerminal
-                          ? Icons.check_circle_outline
-                          : Icons.access_time,
-                  color: isCancelled
-                      ? Colors.red
-                      : isTerminal
-                          ? Colors.green
-                          : kMedicalBlue,
+                Icon(heroIcon, color: Colors.white, size: 60),
+                const SizedBox(height: 12),
+                Text(
+                  order.status.label,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 20,
+                  ),
                 ),
-                const SizedBox(width: 8),
-                Text(order.status.label,
-                    style: TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 16,
-                        color: isCancelled
-                            ? Colors.red
-                            : isTerminal
-                                ? Colors.green
-                                : kMedicalBlue)),
               ],
             ),
           ),
-          const SizedBox(height: 24),
 
-          // Stepper
+          const SizedBox(height: 28),
+
+          // ── Vertical stepper ──────────────────────────────────────
           if (!isCancelled) ...[
             _TrackingStepper(steps: _steps, currentStep: stepIndex),
-            const SizedBox(height: 24),
+            const SizedBox(height: 28),
           ],
 
-          // Drug info card
+          // ── Drug info card ─────────────────────────────────────────
           _InfoCard(
             title: 'الدواء',
             icon: Icons.medication,
             children: [
-              _InfoRow(
-                  'الاسم', order.drug?.nameAr ?? 'دواء #${order.drugId}'),
+              _InfoRow('الاسم',
+                  order.drug?.nameAr ?? 'دواء #${order.drugId}'),
               _InfoRow('الكمية', '${order.quantity}'),
               if (order.codAmount != null)
                 _InfoRow('السعر',
@@ -125,9 +141,10 @@ class _OrderTrackingBody extends StatelessWidget {
                     '${order.deliveryFee!.toStringAsFixed(2)} ج.م'),
             ],
           ),
-          const SizedBox(height: 12),
 
-          // Pharmacy card (if assigned)
+          const SizedBox(height: 14),
+
+          // ── Pharmacy card ──────────────────────────────────────────
           if (order.pharmacy != null) ...[
             _InfoCard(
               title: 'الصيدلية',
@@ -140,10 +157,10 @@ class _OrderTrackingBody extends StatelessWidget {
                   _InfoRow('العنوان', order.pharmacy!.address!),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 14),
           ],
 
-          // Payment
+          // ── Payment card ───────────────────────────────────────────
           _InfoCard(
             title: 'الدفع',
             icon: Icons.payment_outlined,
@@ -162,11 +179,15 @@ class _OrderTrackingBody extends StatelessWidget {
                           : 'معلق'),
             ],
           ),
+
+          const SizedBox(height: 20),
         ],
       ),
     );
   }
 }
+
+// ─── Vertical Tracking Stepper ────────────────────────────────────────────────
 
 class _TrackingStepper extends StatelessWidget {
   const _TrackingStepper(
@@ -176,57 +197,114 @@ class _TrackingStepper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: List.generate(steps.length * 2 - 1, (i) {
-        if (i.isOdd) {
-          // connector
-          final stepBefore = i ~/ 2;
-          final filled = stepBefore < currentStep;
-          return Expanded(
-            child: Container(
-              height: 2,
-              color: filled ? kMedicalBlue : Colors.grey[300],
-            ),
-          );
-        }
-        final stepIndex = i ~/ 2;
-        final done = stepIndex < currentStep;
-        final active = stepIndex == currentStep;
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            CircleAvatar(
-              radius: 16,
-              backgroundColor: done
-                  ? kMedicalBlue
-                  : active
-                      ? kMedicalBlue.withValues(alpha:0.3)
-                      : Colors.grey[200],
-              child: done
-                  ? const Icon(Icons.check, size: 16, color: Colors.white)
-                  : active
-                      ? const CircleAvatar(
-                          radius: 6, backgroundColor: kMedicalBlue)
-                      : CircleAvatar(
-                          radius: 6, backgroundColor: Colors.grey[400]),
-            ),
-            const SizedBox(height: 4),
-            SizedBox(
-              width: 60,
-              child: Text(steps[stepIndex],
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                      fontSize: 9,
-                      color: (done || active)
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: kSurface,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: const [
+          BoxShadow(
+              color: kCardShadowBlue,
+              blurRadius: 24,
+              offset: Offset(0, 6)),
+          BoxShadow(
+              color: Color(0x06000000),
+              blurRadius: 6,
+              offset: Offset(0, 1)),
+        ],
+      ),
+      child: Column(
+        children: List.generate(steps.length, (i) {
+          final done   = i < currentStep;
+          final active = i == currentStep;
+          final last   = i == steps.length - 1;
+
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Left column: circle + connector
+              Column(
+                children: [
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    width: done ? 32 : active ? 32 : 28,
+                    height: done ? 32 : active ? 32 : 28,
+                    decoration: BoxDecoration(
+                      color: done
                           ? kMedicalBlue
-                          : Colors.grey[500])),
-            ),
-          ],
-        );
-      }),
+                          : active
+                              ? kMedicalBlueLight
+                              : const Color(0xFFF3F4F6),
+                      shape: BoxShape.circle,
+                      border: active
+                          ? Border.all(
+                              color: kMedicalBlue, width: 2)
+                          : null,
+                    ),
+                    child: Center(
+                      child: done
+                          ? const Icon(Icons.check,
+                              size: 16, color: Colors.white)
+                          : active
+                              ? Container(
+                                  width: 10,
+                                  height: 10,
+                                  decoration: const BoxDecoration(
+                                    color: kMedicalBlue,
+                                    shape: BoxShape.circle,
+                                  ),
+                                )
+                              : Text(
+                                  '${i + 1}',
+                                  style: const TextStyle(
+                                      fontSize: 11,
+                                      color: kTextSecondary,
+                                      fontWeight: FontWeight.w600),
+                                ),
+                    ),
+                  ),
+                  if (!last)
+                    AnimatedContainer(
+                      duration: const Duration(milliseconds: 300),
+                      width: 2,
+                      height: 32,
+                      color: done
+                          ? kMedicalBlue
+                          : const Color(0xFFE2E8F0),
+                    ),
+                ],
+              ),
+              const SizedBox(width: 14),
+              // Right: label
+              Expanded(
+                child: Padding(
+                  padding: EdgeInsets.only(
+                      top: 4, bottom: last ? 0 : 24),
+                  child: Text(
+                    steps[i],
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: (done || active)
+                          ? FontWeight.w600
+                          : FontWeight.w400,
+                      color: done
+                          ? kMedicalBlue
+                          : active
+                              ? kMedicalBlue
+                              : kTextSecondary,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          );
+        }),
+      ),
     );
   }
 }
+
+// ─── Info Card ────────────────────────────────────────────────────────────────
 
 class _InfoCard extends StatelessWidget {
   const _InfoCard(
@@ -239,30 +317,61 @@ class _InfoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+    return Container(
+      decoration: BoxDecoration(
+        color: kSurface,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: const [
+          BoxShadow(
+              color: kCardShadowBlue,
+              blurRadius: 24,
+              offset: Offset(0, 6)),
+          BoxShadow(
+              color: Color(0x06000000),
+              blurRadius: 6,
+              offset: Offset(0, 1)),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 10),
+            child: Row(
               children: [
-                Icon(icon, size: 18, color: kMedicalBlue),
-                const SizedBox(width: 6),
+                Container(
+                  width: 34,
+                  height: 34,
+                  decoration: BoxDecoration(
+                    color: kMedicalBlueLight,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(icon, size: 18, color: kMedicalBlue),
+                ),
+                const SizedBox(width: 10),
                 Text(title,
                     style: const TextStyle(
                         fontWeight: FontWeight.w700,
-                        color: kMedicalBlue)),
+                        color: kMedicalBlue,
+                        fontSize: 15)),
               ],
             ),
-            const Divider(height: 16),
-            ...children,
-          ],
-        ),
+          ),
+          const Divider(height: 1, color: Color(0xFFE2E8F0)),
+          ...children.map((child) => Container(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 16, vertical: 2),
+                color: kBg.withValues(alpha: 0.5),
+                child: child,
+              )),
+          const SizedBox(height: 8),
+        ],
       ),
     );
   }
 }
+
+// ─── Info Row ─────────────────────────────────────────────────────────────────
 
 class _InfoRow extends StatelessWidget {
   const _InfoRow(this.label, this.value);
@@ -272,18 +381,20 @@ class _InfoRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 3),
+      padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
               width: 100,
               child: Text(label,
-                  style: TextStyle(
-                      color: Colors.grey[600], fontSize: 13))),
+                  style: const TextStyle(
+                      color: kTextSecondary, fontSize: 13))),
           Expanded(
               child: Text(value,
-                  style: const TextStyle(fontWeight: FontWeight.w500))),
+                  style: const TextStyle(
+                      fontWeight: FontWeight.w500,
+                      color: kTextPrimary))),
         ],
       ),
     );

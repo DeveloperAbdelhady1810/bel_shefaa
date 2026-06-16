@@ -51,38 +51,95 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final name = patient is AuthAuthenticated ? patient.patient.name : '';
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text('مرحباً${name.isNotEmpty ? "، $name" : ""} 👋'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.person_outline),
-            onPressed: () => context.push('/profile'),
+      backgroundColor: kBg,
+      body: CustomScrollView(
+        slivers: [
+          // ── Gradient SliverAppBar ──────────────────────────────────
+          SliverAppBar(
+            expandedHeight: 120,
+            pinned: true,
+            backgroundColor: kMedicalBlue,
+            foregroundColor: Colors.white,
+            flexibleSpace: FlexibleSpaceBar(
+              background: Container(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [kMedicalBlueDark, kMedicalBlue],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                ),
+                child: SafeArea(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          name.isNotEmpty
+                              ? 'مرحباً، $name'
+                              : 'مرحباً بك',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 22,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'ابحث عن دوائك الآن',
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.75),
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.person_outline),
+                onPressed: () => context.push('/profile'),
+              ),
+            ],
           ),
-        ],
-      ),
-      body: Column(
-        children: [
-          _SearchBar(
-            controller: _searchCtrl,
-            searching: _searching,
-            onTap: _openSearch,
-            onClose: _closeSearch,
-            onChanged: (q) =>
-                ref.read(drugSearchControllerProvider.notifier).onQueryChanged(q),
+
+          // ── Search bar (pinned below app bar) ──────────────────────
+          SliverToBoxAdapter(
+            child: _SearchBar(
+              controller: _searchCtrl,
+              searching: _searching,
+              onTap: _openSearch,
+              onClose: _closeSearch,
+              onChanged: (q) =>
+                  ref.read(drugSearchControllerProvider.notifier).onQueryChanged(q),
+            ),
           ),
+
+          // ── Content: home or search results ───────────────────────
           if (_searching)
-            Expanded(child: _SearchResultsPanel(onDrugTap: _onDrugTap))
+            SliverFillRemaining(
+              child: _SearchResultsPanel(onDrugTap: _onDrugTap),
+            )
           else
-            Expanded(child: _HomeContent(onCategoryTap: (q) {
-              _searchCtrl.text = q;
-              _openSearch();
-              ref.read(drugSearchControllerProvider.notifier).onQueryChanged(q);
-            })),
+            ..._HomeContent(
+              onCategoryTap: (q) {
+                _searchCtrl.text = q;
+                _openSearch();
+                ref.read(drugSearchControllerProvider.notifier).onQueryChanged(q);
+              },
+            ).buildSlivers(context, ref),
         ],
       ),
     );
   }
 }
+
+// ─── Search Bar ───────────────────────────────────────────────────────────────
 
 class _SearchBar extends StatelessWidget {
   const _SearchBar({
@@ -104,35 +161,70 @@ class _SearchBar extends StatelessWidget {
     return Container(
       color: kMedicalBlue,
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-      child: TextField(
-        controller: controller,
-        onTap: onTap,
-        onChanged: onChanged,
-        style: const TextStyle(color: Colors.white),
-        cursorColor: Colors.white,
-        decoration: InputDecoration(
-          hintText: 'ابحث عن دواءك...',
-          hintStyle: const TextStyle(color: Colors.white70),
-          prefixIcon: const Icon(Icons.search, color: Colors.white),
-          suffixIcon: searching
-              ? IconButton(
-                  icon: const Icon(Icons.close, color: Colors.white),
-                  onPressed: onClose,
-                )
-              : null,
-          filled: true,
-          fillColor: Colors.white.withValues(alpha:0.2),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide.none,
-          ),
+      child: Container(
+        height: 52,
+        decoration: BoxDecoration(
+          color: kSurface,
+          borderRadius: BorderRadius.circular(28),
+          boxShadow: const [
+            BoxShadow(
+                color: kCardShadowBlue,
+                blurRadius: 16,
+                offset: Offset(0, 4)),
+          ],
+        ),
+        child: Row(
+          children: [
+            const SizedBox(width: 16),
+            const Icon(Icons.search, color: kMedicalBlue, size: 22),
+            const SizedBox(width: 10),
+            Expanded(
+              child: searching
+                  ? TextField(
+                      controller: controller,
+                      onChanged: onChanged,
+                      autofocus: true,
+                      style: const TextStyle(
+                          color: kTextPrimary, fontSize: 15),
+                      decoration: const InputDecoration(
+                        hintText: 'ابحث عن دواءك...',
+                        hintStyle:
+                            TextStyle(color: kTextSecondary, fontSize: 15),
+                        border: InputBorder.none,
+                        isDense: true,
+                        contentPadding: EdgeInsets.zero,
+                        fillColor: Colors.transparent,
+                        filled: false,
+                      ),
+                    )
+                  : GestureDetector(
+                      onTap: onTap,
+                      behavior: HitTestBehavior.opaque,
+                      child: const Text(
+                        'ابحث عن دواءك...',
+                        style: TextStyle(
+                            color: kTextSecondary, fontSize: 15),
+                      ),
+                    ),
+            ),
+            if (searching)
+              IconButton(
+                icon: const Icon(Icons.close, color: kTextSecondary, size: 20),
+                onPressed: onClose,
+                padding: EdgeInsets.zero,
+              )
+            else
+              const SizedBox(width: 16),
+          ],
         ),
       ),
     );
   }
 }
 
-class _HomeContent extends ConsumerWidget {
+// ─── Home Content (returns slivers) ──────────────────────────────────────────
+
+class _HomeContent {
   const _HomeContent({required this.onCategoryTap});
   final ValueChanged<String> onCategoryTap;
 
@@ -145,105 +237,119 @@ class _HomeContent extends ConsumerWidget {
     ('مكملات غذائية', Icons.emoji_food_beverage_outlined, 'فيتامين'),
   ];
 
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  List<Widget> buildSlivers(BuildContext context, WidgetRef ref) {
     final ordersAsync = ref.watch(ordersListControllerProvider);
 
-    return RefreshIndicator(
-      onRefresh: () =>
-          ref.read(ordersListControllerProvider.notifier).refresh(),
-      child: CustomScrollView(
-        slivers: [
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 20, 16, 8),
-              child: Text('فئات سريعة',
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleMedium
-                      ?.copyWith(fontWeight: FontWeight.w700)),
-            ),
+    return [
+      // Categories header
+      SliverToBoxAdapter(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 24, 20, 12),
+          child: Text(
+            'فئات سريعة',
+            style: Theme.of(context)
+                .textTheme
+                .titleMedium
+                ?.copyWith(fontWeight: FontWeight.w700, color: kTextPrimary),
           ),
-          SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            sliver: SliverGrid(
-              delegate: SliverChildBuilderDelegate(
-                (context, i) {
-                  final (label, icon, query) = _categories[i];
-                  return _CategoryChip(
-                    label: label,
-                    icon: icon,
-                    onTap: () => onCategoryTap(query),
-                  );
-                },
-                childCount: _categories.length,
-              ),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
-                mainAxisSpacing: 10,
-                crossAxisSpacing: 10,
-                childAspectRatio: 1.1,
-              ),
-            ),
-          ),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('آخر طلباتك',
-                      style: Theme.of(context)
-                          .textTheme
-                          .titleMedium
-                          ?.copyWith(fontWeight: FontWeight.w700)),
-                  TextButton(
-                    onPressed: () => context.push('/orders-history'),
-                    child: const Text('عرض الكل'),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          ordersAsync.when(
-            loading: () => const SliverToBoxAdapter(
-              child: Center(
-                  child: Padding(
-                      padding: EdgeInsets.all(16),
-                      child: CircularProgressIndicator())),
-            ),
-            error: (_, __) => const SliverToBoxAdapter(
-              child: Center(child: Text('تعذّر تحميل الطلبات')),
-            ),
-            data: (orders) {
-              if (orders.isEmpty) {
-                return const SliverToBoxAdapter(
-                  child: Padding(
-                    padding: EdgeInsets.all(32),
-                    child: Center(
-                      child: Text('لا توجد طلبات سابقة',
-                          style: TextStyle(color: Colors.grey)),
-                    ),
-                  ),
-                );
-              }
-              final recent = orders.take(3).toList();
-              return SliverPadding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-                sliver: SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, i) => _RecentOrderCard(order: recent[i]),
-                    childCount: recent.length,
-                  ),
-                ),
+        ),
+      ),
+
+      // Categories grid
+      SliverPadding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        sliver: SliverGrid(
+          delegate: SliverChildBuilderDelegate(
+            (context, i) {
+              final (label, icon, query) = _categories[i];
+              return _CategoryChip(
+                label: label,
+                icon: icon,
+                onTap: () => onCategoryTap(query),
               );
             },
+            childCount: _categories.length,
           ),
-        ],
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 3,
+            mainAxisSpacing: 12,
+            crossAxisSpacing: 12,
+            childAspectRatio: 1.05,
+          ),
+        ),
       ),
-    );
+
+      // Recent orders header
+      SliverToBoxAdapter(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 28, 20, 12),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'آخر طلباتك',
+                style: Theme.of(context)
+                    .textTheme
+                    .titleMedium
+                    ?.copyWith(
+                        fontWeight: FontWeight.w700, color: kTextPrimary),
+              ),
+              TextButton(
+                onPressed: () => context.push('/orders-history'),
+                child: const Text('عرض الكل',
+                    style: TextStyle(color: kMedicalBlue)),
+              ),
+            ],
+          ),
+        ),
+      ),
+
+      // Recent orders list
+      ordersAsync.when(
+        loading: () => const SliverToBoxAdapter(
+          child: Center(
+            child: Padding(
+                padding: EdgeInsets.all(16),
+                child: CircularProgressIndicator()),
+          ),
+        ),
+        error: (_, __) => const SliverToBoxAdapter(
+          child: Center(child: Text('تعذّر تحميل الطلبات')),
+        ),
+        data: (orders) {
+          if (orders.isEmpty) {
+            return const SliverToBoxAdapter(
+              child: Padding(
+                padding: EdgeInsets.all(32),
+                child: Center(
+                  child: Text(
+                    'لا توجد طلبات سابقة',
+                    style: TextStyle(color: kTextSecondary),
+                  ),
+                ),
+              ),
+            );
+          }
+          final recent = orders.take(3).toList();
+          return SliverPadding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
+            sliver: SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (context, i) => Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: _RecentOrderCard(order: recent[i]),
+                ),
+                childCount: recent.length,
+              ),
+            ),
+          );
+        },
+      ),
+    ];
   }
 }
+
+// ─── Category Chip ────────────────────────────────────────────────────────────
 
 class _CategoryChip extends StatelessWidget {
   const _CategoryChip(
@@ -254,25 +360,48 @@ class _CategoryChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
+    return _TapScale(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
       child: Container(
         decoration: BoxDecoration(
-          color: kMedicalBlueLight,
-          borderRadius: BorderRadius.circular(12),
+          color: kSurface,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: const [
+            BoxShadow(
+                color: kCardShadowBlue,
+                blurRadius: 16,
+                offset: Offset(0, 4)),
+            BoxShadow(
+                color: Color(0x06000000),
+                blurRadius: 4,
+                offset: Offset(0, 1)),
+          ],
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: kMedicalBlue, size: 28),
-            const SizedBox(height: 6),
-            Text(label,
-                style: const TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: kMedicalBlue),
-                textAlign: TextAlign.center),
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [kMedicalBlue, kMedicalBlueDark],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Icon(icon, color: Colors.white, size: 22),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              label,
+              style: const TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: kTextPrimary),
+              textAlign: TextAlign.center,
+            ),
           ],
         ),
       ),
@@ -280,26 +409,95 @@ class _CategoryChip extends StatelessWidget {
   }
 }
 
+// ─── Recent Order Card ────────────────────────────────────────────────────────
+
 class _RecentOrderCard extends StatelessWidget {
   const _RecentOrderCard({required this.order});
   final Order order;
 
+  Color get _statusColor {
+    if (order.status == 'delivered') return kSuccess;
+    if (order.status == 'cancelled' || order.status == 'failed') return kError;
+    return kMedicalBlue;
+  }
+
   @override
   Widget build(BuildContext context) {
     final drugName = order.drug?.nameAr ?? 'دواء #${order.drugId}';
-    return Card(
-      margin: const EdgeInsets.only(bottom: 10),
-      child: ListTile(
-        leading:
-            const CircleAvatar(child: Icon(Icons.medication, color: kMedicalBlue)),
-        title: Text(drugName),
-        subtitle: Text(order.status.label),
-        trailing: const Icon(Icons.chevron_right),
-        onTap: () => context.push('/tracking/${order.id}'),
+    return _TapScale(
+      onTap: () => context.push('/tracking/${order.id}'),
+      child: Container(
+        decoration: BoxDecoration(
+          color: kSurface,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: const [
+            BoxShadow(
+                color: kCardShadowBlue,
+                blurRadius: 24,
+                offset: Offset(0, 6)),
+            BoxShadow(
+                color: Color(0x06000000),
+                blurRadius: 6,
+                offset: Offset(0, 1)),
+          ],
+        ),
+        child: Row(
+          children: [
+            // Left accent bar
+            Container(
+              width: 4,
+              height: 64,
+              decoration: BoxDecoration(
+                color: _statusColor,
+                borderRadius: const BorderRadius.horizontal(
+                    left: Radius.circular(16)),
+              ),
+            ),
+            const SizedBox(width: 14),
+            CircleAvatar(
+              radius: 20,
+              backgroundColor: _statusColor.withValues(alpha: 0.12),
+              child: Icon(Icons.medication, color: _statusColor, size: 20),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(drugName,
+                      style: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14,
+                          color: kTextPrimary)),
+                  const SizedBox(height: 3),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: _statusColor.withValues(alpha: 0.10),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      order.status.label,
+                      style: TextStyle(
+                          fontSize: 11,
+                          color: _statusColor,
+                          fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_right, color: kTextSecondary),
+            const SizedBox(width: 12),
+          ],
+        ),
       ),
     );
   }
 }
+
+// ─── Search Results Panel ─────────────────────────────────────────────────────
 
 class _SearchResultsPanel extends ConsumerWidget {
   const _SearchResultsPanel({required this.onDrugTap});
@@ -312,7 +510,7 @@ class _SearchResultsPanel extends ConsumerWidget {
     if (state.query.trim().length < 2) {
       return const Center(
         child: Text('اكتب اسم الدواء للبحث',
-            style: TextStyle(color: Colors.grey)),
+            style: TextStyle(color: kTextSecondary)),
       );
     }
 
@@ -321,7 +519,9 @@ class _SearchResultsPanel extends ConsumerWidget {
     }
 
     if (state.error != null) {
-      return Center(child: Text(state.error!, style: const TextStyle(color: Colors.red)));
+      return Center(
+          child: Text(state.error!,
+              style: const TextStyle(color: kError)));
     }
 
     if (state.results.isEmpty) {
@@ -329,10 +529,10 @@ class _SearchResultsPanel extends ConsumerWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.search_off, size: 48, color: Colors.grey),
-            SizedBox(height: 8),
+            Icon(Icons.search_off, size: 56, color: kTextSecondary),
+            SizedBox(height: 12),
             Text('لم يتم العثور على نتائج',
-                style: TextStyle(color: Colors.grey)),
+                style: TextStyle(color: kTextSecondary, fontSize: 15)),
           ],
         ),
       );
@@ -341,7 +541,7 @@ class _SearchResultsPanel extends ConsumerWidget {
     return ListView.separated(
       padding: const EdgeInsets.all(16),
       itemCount: state.results.length,
-      separatorBuilder: (_, __) => const Divider(height: 1),
+      separatorBuilder: (_, __) => const SizedBox(height: 10),
       itemBuilder: (context, i) {
         final drug = state.results[i];
         return _DrugSearchTile(drug: drug, onTap: () => onDrugTap(drug));
@@ -350,6 +550,8 @@ class _SearchResultsPanel extends ConsumerWidget {
   }
 }
 
+// ─── Drug Search Tile ─────────────────────────────────────────────────────────
+
 class _DrugSearchTile extends StatelessWidget {
   const _DrugSearchTile({required this.drug, required this.onTap});
   final DrugResult drug;
@@ -357,40 +559,121 @@ class _DrugSearchTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      leading: CircleAvatar(
-        backgroundColor: drug.available ? kMedicalBlueLight : Colors.grey[100],
-        child: Icon(Icons.medication,
-            color: drug.available ? kMedicalBlue : Colors.grey),
-      ),
-      title: Text(drug.nameAr,
-          style: const TextStyle(fontWeight: FontWeight.w600)),
-      subtitle: Text(
-        [
-          if (drug.scientificName != null) drug.scientificName!,
-          if (drug.form != null) drug.form!,
-          if (drug.strength != null) drug.strength!,
-        ].join(' · '),
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-      ),
-      trailing: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: BoxDecoration(
-          color: drug.available
-              ? Colors.green.withValues(alpha:0.1)
-              : Colors.orange.withValues(alpha:0.1),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Text(
-          drug.available ? 'متوفر' : 'نادر',
-          style: TextStyle(
-              fontSize: 11,
-              color: drug.available ? Colors.green[700] : Colors.orange[700],
-              fontWeight: FontWeight.w600),
-        ),
-      ),
+    final sub = [
+      if (drug.scientificName != null) drug.scientificName!,
+      if (drug.form != null) drug.form!,
+      if (drug.strength != null) drug.strength!,
+    ].join(' · ');
+
+    return _TapScale(
       onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: kSurface,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: const [
+            BoxShadow(
+                color: kCardShadowBlue,
+                blurRadius: 24,
+                offset: Offset(0, 6)),
+            BoxShadow(
+                color: Color(0x06000000),
+                blurRadius: 6,
+                offset: Offset(0, 1)),
+          ],
+        ),
+        child: Row(
+          children: [
+            CircleAvatar(
+              backgroundColor: drug.available
+                  ? kMedicalBlueLight
+                  : const Color(0xFFF3F4F6),
+              child: Icon(Icons.medication,
+                  color: drug.available ? kMedicalBlue : kTextSecondary,
+                  size: 20),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(drug.nameAr,
+                      style: const TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 16,
+                          color: kTextPrimary)),
+                  if (sub.isNotEmpty) ...[
+                    const SizedBox(height: 3),
+                    Text(sub,
+                        style: const TextStyle(
+                            color: kTextSecondary, fontSize: 12),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis),
+                  ],
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: drug.available
+                    ? kGreenLight
+                    : kWarning.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                drug.available ? 'متوفر' : 'نادر',
+                style: TextStyle(
+                    fontSize: 11,
+                    color: drug.available ? kSuccess : kWarning,
+                    fontWeight: FontWeight.w600),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
+}
+
+// ─── Tap Scale Helper ─────────────────────────────────────────────────────────
+
+class _TapScale extends StatefulWidget {
+  const _TapScale({required this.child, required this.onTap});
+  final Widget child;
+  final VoidCallback onTap;
+
+  @override
+  State<_TapScale> createState() => _TapScaleState();
+}
+
+class _TapScaleState extends State<_TapScale>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl = AnimationController(
+      vsync: this, duration: const Duration(milliseconds: 80));
+  late final Animation<double> _scale =
+      Tween(begin: 1.0, end: 0.95).animate(
+          CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut));
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => ScaleTransition(
+        scale: _scale,
+        child: GestureDetector(
+          onTapDown: (_) => _ctrl.forward(),
+          onTapUp: (_) {
+            _ctrl.reverse();
+            widget.onTap();
+          },
+          onTapCancel: () => _ctrl.reverse(),
+          child: widget.child,
+        ),
+      );
 }

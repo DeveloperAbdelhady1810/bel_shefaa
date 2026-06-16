@@ -51,125 +51,291 @@ class _StockEditScreenState extends ConsumerState<StockEditScreen> {
           next.successMessage != prev?.successMessage) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text(next.successMessage!),
-          backgroundColor: Colors.green,
+          backgroundColor: kSuccess,
         ));
       }
     });
 
     return Scaffold(
-      appBar: AppBar(title: const Text('تعديل المخزون')),
+      backgroundColor: kBg,
+      appBar: AppBar(
+        title: const Text('تعديل المخزون'),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [kMedicalBlue, kMedicalBlueDark],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Code lookup field
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _codeCtrl,
-                    focusNode: _codeFocus,
-                    decoration: const InputDecoration(
-                      labelText: 'اسم الدواء أو الباركود أو رقم EDA',
-                      prefixIcon: Icon(Icons.qr_code),
-                      hintText: 'مثال: بانادول أو الباركود',
+            // ── Search card ──────────────────────────────────────────────────
+            Container(
+              decoration: const BoxDecoration(
+                color: kSurface,
+                borderRadius: BorderRadius.all(Radius.circular(20)),
+                boxShadow: [
+                  BoxShadow(
+                      color: kCardShadowBlue,
+                      blurRadius: 24,
+                      offset: Offset(0, 6)),
+                  BoxShadow(
+                      color: Color(0x06000000),
+                      blurRadius: 6,
+                      offset: Offset(0, 1)),
+                ],
+              ),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _codeCtrl,
+                      focusNode: _codeFocus,
+                      decoration: const InputDecoration(
+                        labelText: 'اسم الدواء أو الباركود أو رقم EDA',
+                        prefixIcon: Icon(Icons.qr_code_scanner_outlined),
+                        hintText: 'مثال: بانادول أو الباركود',
+                      ),
+                      textInputAction: TextInputAction.search,
+                      onSubmitted: (_) => _lookup(),
                     ),
-                    textInputAction: TextInputAction.search,
-                    onSubmitted: (_) => _lookup(),
                   ),
-                ),
-                const SizedBox(width: 10),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                      minimumSize: const Size(56, 56)),
-                  onPressed: state.isLooking ? null : _lookup,
-                  child: state.isLooking
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                              strokeWidth: 2, color: Colors.white))
-                      : const Icon(Icons.search),
-                ),
-              ],
+                  const SizedBox(width: 12),
+
+                  // Gradient search button
+                  _TapScale(
+                    onTap: state.isLooking ? () {} : _lookup,
+                    child: Container(
+                      width: 56,
+                      height: 56,
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [kMedicalBlue, kMedicalBlueDark],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(14),
+                        boxShadow: [
+                          BoxShadow(
+                            color: kMedicalBlue.withValues(alpha: 0.35),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(14),
+                          onTap: state.isLooking ? null : _lookup,
+                          child: Center(
+                            child: state.isLooking
+                                ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: Colors.white))
+                                : const Icon(Icons.search,
+                                    color: Colors.white, size: 24),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
 
-            // Error message
+            // ── Error banner ──────────────────────────────────────────────────
             if (state.error != null) ...[
-              const SizedBox(height: 12),
+              const SizedBox(height: 14),
               Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 16, vertical: 12),
                 decoration: BoxDecoration(
-                  color: Colors.red[50],
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.red[200]!),
+                  color: kError.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                      color: kError.withValues(alpha: 0.35)),
                 ),
-                child: Text(state.error!,
-                    style: TextStyle(color: Colors.red[700])),
+                child: Row(
+                  children: [
+                    const Icon(Icons.error_outline,
+                        color: kError, size: 18),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        state.error!,
+                        style:
+                            const TextStyle(color: kError, fontSize: 13),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
 
-            // Drug result card + quantity editor
+            // ── Drug result card ──────────────────────────────────────────────
             if (state.result != null) ...[
-              const SizedBox(height: 20),
-              Card(
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
+              const SizedBox(height: 16),
+              Container(
+                decoration: const BoxDecoration(
+                  color: kSurface,
+                  borderRadius: BorderRadius.all(Radius.circular(20)),
+                  boxShadow: [
+                    BoxShadow(
+                        color: kCardShadowBlue,
+                        blurRadius: 24,
+                        offset: Offset(0, 6)),
+                    BoxShadow(
+                        color: Color(0x06000000),
+                        blurRadius: 6,
+                        offset: Offset(0, 1)),
+                  ],
+                ),
                 child: Padding(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(20),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(children: [
-                        const Icon(Icons.medication,
-                            color: kMedicalBlue, size: 20),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            state.result!.nameAr,
-                            style: const TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.w700),
+                      // Drug identity
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Container(
+                            width: 48,
+                            height: 48,
+                            decoration: BoxDecoration(
+                              color: kMedicalBlueLight,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Icon(Icons.medication,
+                                color: kMedicalBlue, size: 26),
                           ),
-                        ),
-                      ]),
-                      if (state.result!.nameEn != null) ...[
-                        const SizedBox(height: 4),
-                        Text(state.result!.nameEn!,
-                            style: TextStyle(
-                                color: Colors.grey[600], fontSize: 13)),
-                      ],
-                      if (state.result!.form != null ||
-                          state.result!.strength != null) ...[
-                        const SizedBox(height: 4),
-                        Text(
-                          [state.result!.form, state.result!.strength]
-                              .whereType<String>()
-                              .join(' — '),
-                          style: TextStyle(
-                              color: Colors.grey[500], fontSize: 13),
-                        ),
-                      ],
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment:
+                                  CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  state.result!.nameAr,
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w700,
+                                    color: kTextPrimary,
+                                  ),
+                                ),
+                                if (state.result!.nameEn != null) ...[
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    state.result!.nameEn!,
+                                    style: const TextStyle(
+                                        color: kTextSecondary,
+                                        fontSize: 13),
+                                  ),
+                                ],
+                                if (state.result!.form != null ||
+                                    state.result!.strength != null) ...[
+                                  const SizedBox(height: 3),
+                                  Text(
+                                    [
+                                      state.result!.form,
+                                      state.result!.strength
+                                    ]
+                                        .whereType<String>()
+                                        .join(' — '),
+                                    style: const TextStyle(
+                                        color: kTextSecondary,
+                                        fontSize: 12),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+
                       const SizedBox(height: 16),
+                      Container(height: 1, color: kBg),
+                      const SizedBox(height: 16),
+
+                      // Quantity field
                       TextField(
                         controller: _qtyCtrl,
                         keyboardType: TextInputType.number,
                         decoration: const InputDecoration(
                           labelText: 'الكمية المتاحة',
-                          prefixIcon: Icon(Icons.inventory),
+                          prefixIcon:
+                              Icon(Icons.inventory_2_outlined),
                         ),
                       ),
                       const SizedBox(height: 16),
-                      ElevatedButton.icon(
-                        onPressed: state.isSaving ? null : _save,
-                        icon: state.isSaving
-                            ? const SizedBox(
-                                width: 18,
-                                height: 18,
-                                child: CircularProgressIndicator(
-                                    strokeWidth: 2, color: Colors.white))
-                            : const Icon(Icons.save),
-                        label: const Text('حفظ'),
+
+                      // Save button (full-width gradient)
+                      _TapScale(
+                        onTap: state.isSaving ? () {} : _save,
+                        child: Container(
+                          height: 56,
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [kMedicalBlue, kMedicalBlueDark],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                color:
+                                    kMedicalBlue.withValues(alpha: 0.35),
+                                blurRadius: 16,
+                                offset: const Offset(0, 6),
+                              ),
+                            ],
+                          ),
+                          child: Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(16),
+                              onTap: state.isSaving ? null : _save,
+                              child: Center(
+                                child: state.isSaving
+                                    ? const SizedBox(
+                                        width: 22,
+                                        height: 22,
+                                        child: CircularProgressIndicator(
+                                            strokeWidth: 2.5,
+                                            color: Colors.white))
+                                    : const Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(Icons.save_outlined,
+                                              color: Colors.white,
+                                              size: 20),
+                                          SizedBox(width: 8),
+                                          Text(
+                                            'حفظ الكمية',
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.w700,
+                                              fontSize: 16,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                              ),
+                            ),
+                          ),
+                        ),
                       ),
                     ],
                   ),
@@ -178,9 +344,13 @@ class _StockEditScreenState extends ConsumerState<StockEditScreen> {
             ],
 
             const Spacer(),
+
+            // ── Instruction hint ──────────────────────────────────────────────
             Text(
               'ابحث باسم الدواء أو امسح الباركود أو اكتب رقم EDA يدوياً.',
-              style: TextStyle(color: Colors.grey[400], fontSize: 12),
+              style: TextStyle(
+                  color: kTextSecondary.withValues(alpha: 0.6),
+                  fontSize: 12),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
@@ -189,4 +359,39 @@ class _StockEditScreenState extends ConsumerState<StockEditScreen> {
       ),
     );
   }
+}
+
+// ── Tap-scale micro-interaction ────────────────────────────────────────────────
+class _TapScale extends StatefulWidget {
+  const _TapScale({required this.child, required this.onTap});
+  final Widget child;
+  final VoidCallback onTap;
+
+  @override
+  State<_TapScale> createState() => _TapScaleState();
+}
+
+class _TapScaleState extends State<_TapScale>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl = AnimationController(
+      vsync: this, duration: const Duration(milliseconds: 90));
+  late final Animation<double> _scale = Tween(begin: 1.0, end: 0.96).animate(
+      CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut));
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => GestureDetector(
+        onTapDown: (_) => _ctrl.forward(),
+        onTapUp: (_) {
+          _ctrl.reverse();
+          widget.onTap();
+        },
+        onTapCancel: () => _ctrl.reverse(),
+        child: ScaleTransition(scale: _scale, child: widget.child),
+      );
 }
