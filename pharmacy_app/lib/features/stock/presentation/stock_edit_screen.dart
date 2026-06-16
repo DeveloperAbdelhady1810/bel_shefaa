@@ -71,9 +71,9 @@ class _StockEditScreenState extends ConsumerState<StockEditScreen> {
                     controller: _codeCtrl,
                     focusNode: _codeFocus,
                     decoration: const InputDecoration(
-                      labelText: 'باركود أو رقم EDA',
+                      labelText: 'اسم الدواء أو الباركود أو رقم EDA',
                       prefixIcon: Icon(Icons.qr_code),
-                      hintText: 'امسح الباركود أو اكتب يدوياً',
+                      hintText: 'مثال: بانادول أو الباركود',
                     ),
                     textInputAction: TextInputAction.search,
                     onSubmitted: (_) => _lookup(),
@@ -179,7 +179,7 @@ class _StockEditScreenState extends ConsumerState<StockEditScreen> {
 
             const Spacer(),
             Text(
-              'اسحب ماسح الباركود على علبة الدواء أو اكتب رقم EDA يدوياً.',
+              'ابحث باسم الدواء أو امسح الباركود أو اكتب رقم EDA يدوياً.',
               style: TextStyle(color: Colors.grey[400], fontSize: 12),
               textAlign: TextAlign.center,
             ),
