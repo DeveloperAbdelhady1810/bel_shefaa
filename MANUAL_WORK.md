@@ -36,7 +36,11 @@ REDIS_HOST=127.0.0.1
 REDIS_PORT=6379
 REDIS_PASSWORD=             # #TODO: set if your Redis requires auth
 
-# ─── Delivery — Bosta ────────────────────────────────────────────────────────
+# ─── Delivery ────────────────────────────────────────────────────────────────
+# Keep DELIVERY_ACTIVE=false until Bosta/Mylerz credentials are ready.
+# When your delivery partner is set up, flip to true — the system will then
+# automatically create shipments after pharmacy acceptance.
+DELIVERY_ACTIVE=false
 DELIVERY_PROVIDER=bosta
 BOSTA_API_KEY=              # #TODO: from Bosta dashboard → Settings → API Keys
 BOSTA_BASE_URL=https://app.bosta.co/api/v2   # use https://stg.app.bosta.co/api/v2 for staging
