@@ -8,7 +8,7 @@ part of 'pharmacy_user.dart';
 
 _$PharmacyImpl _$$PharmacyImplFromJson(Map<String, dynamic> json) =>
     _$PharmacyImpl(
-      id: (json['id'] as num).toInt(),
+      id: _parseInt(json['id']),
       name: json['name'] as String,
       phone: json['phone'] as String?,
       address: json['address'] as String?,
@@ -16,7 +16,7 @@ _$PharmacyImpl _$$PharmacyImplFromJson(Map<String, dynamic> json) =>
       district: json['district'] as String?,
       lat: _parseDouble(json['lat']),
       lng: _parseDouble(json['lng']),
-      deliveryRadiusKm: (json['delivery_radius_km'] as num?)?.toInt(),
+      deliveryRadiusKm: _parseIntNullable(json['delivery_radius_km']),
       hasDelivery: json['has_delivery'] as bool? ?? false,
     );
 
@@ -36,11 +36,11 @@ Map<String, dynamic> _$$PharmacyImplToJson(_$PharmacyImpl instance) =>
 
 _$PharmacyUserImpl _$$PharmacyUserImplFromJson(Map<String, dynamic> json) =>
     _$PharmacyUserImpl(
-      id: (json['id'] as num).toInt(),
+      id: _parseInt(json['id']),
       name: json['name'] as String,
       email: json['email'] as String,
       role: json['role'] as String,
-      pharmacyId: (json['pharmacyId'] as num?)?.toInt(),
+      pharmacyId: _parseIntNullable(json['pharmacy_id']),
       pharmacy: json['pharmacy'] == null
           ? null
           : Pharmacy.fromJson(json['pharmacy'] as Map<String, dynamic>),
@@ -52,6 +52,6 @@ Map<String, dynamic> _$$PharmacyUserImplToJson(_$PharmacyUserImpl instance) =>
       'name': instance.name,
       'email': instance.email,
       'role': instance.role,
-      'pharmacyId': instance.pharmacyId,
+      'pharmacy_id': instance.pharmacyId,
       'pharmacy': instance.pharmacy,
     };

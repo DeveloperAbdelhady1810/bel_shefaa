@@ -7,10 +7,16 @@ part 'pharmacy_user.g.dart';
 double? _parseDouble(dynamic v) =>
     v == null ? null : double.tryParse(v.toString());
 
+int _parseInt(dynamic v) =>
+    v == null ? 0 : int.tryParse(v.toString()) ?? 0;
+
+int? _parseIntNullable(dynamic v) =>
+    v == null ? null : int.tryParse(v.toString());
+
 @freezed
 class Pharmacy with _$Pharmacy {
   const factory Pharmacy({
-    required int id,
+    @JsonKey(fromJson: _parseInt) required int id,
     required String name,
     String? phone,
     String? address,
@@ -18,7 +24,8 @@ class Pharmacy with _$Pharmacy {
     String? district,
     @JsonKey(fromJson: _parseDouble) double? lat,
     @JsonKey(fromJson: _parseDouble) double? lng,
-    @JsonKey(name: 'delivery_radius_km') int? deliveryRadiusKm,
+    @JsonKey(name: 'delivery_radius_km', fromJson: _parseIntNullable)
+    int? deliveryRadiusKm,
     @JsonKey(name: 'has_delivery') @Default(false) bool hasDelivery,
   }) = _Pharmacy;
 
@@ -29,11 +36,11 @@ class Pharmacy with _$Pharmacy {
 @freezed
 class PharmacyUser with _$PharmacyUser {
   const factory PharmacyUser({
-    required int id,
+    @JsonKey(fromJson: _parseInt) required int id,
     required String name,
     required String email,
     required String role,
-    int? pharmacyId,
+    @JsonKey(name: 'pharmacy_id', fromJson: _parseIntNullable) int? pharmacyId,
     Pharmacy? pharmacy,
   }) = _PharmacyUser;
 

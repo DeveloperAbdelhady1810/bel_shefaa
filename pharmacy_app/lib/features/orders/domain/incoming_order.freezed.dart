@@ -20,6 +20,7 @@ IncomingDrug _$IncomingDrugFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$IncomingDrug {
+  @JsonKey(fromJson: _parseInt)
   int get id => throw _privateConstructorUsedError;
   @JsonKey(name: 'name_ar')
   String get nameAr => throw _privateConstructorUsedError;
@@ -48,7 +49,7 @@ abstract class $IncomingDrugCopyWith<$Res> {
       _$IncomingDrugCopyWithImpl<$Res, IncomingDrug>;
   @useResult
   $Res call(
-      {int id,
+      {@JsonKey(fromJson: _parseInt) int id,
       @JsonKey(name: 'name_ar') String nameAr,
       @JsonKey(name: 'name_en') String nameEn,
       String? form,
@@ -122,7 +123,7 @@ abstract class _$$IncomingDrugImplCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {int id,
+      {@JsonKey(fromJson: _parseInt) int id,
       @JsonKey(name: 'name_ar') String nameAr,
       @JsonKey(name: 'name_en') String nameEn,
       String? form,
@@ -189,7 +190,7 @@ class __$$IncomingDrugImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$IncomingDrugImpl implements _IncomingDrug {
   const _$IncomingDrugImpl(
-      {required this.id,
+      {@JsonKey(fromJson: _parseInt) required this.id,
       @JsonKey(name: 'name_ar') required this.nameAr,
       @JsonKey(name: 'name_en') required this.nameEn,
       this.form,
@@ -202,6 +203,7 @@ class _$IncomingDrugImpl implements _IncomingDrug {
       _$$IncomingDrugImplFromJson(json);
 
   @override
+  @JsonKey(fromJson: _parseInt)
   final int id;
   @override
   @JsonKey(name: 'name_ar')
@@ -263,7 +265,7 @@ class _$IncomingDrugImpl implements _IncomingDrug {
 
 abstract class _IncomingDrug implements IncomingDrug {
   const factory _IncomingDrug(
-      {required final int id,
+      {@JsonKey(fromJson: _parseInt) required final int id,
       @JsonKey(name: 'name_ar') required final String nameAr,
       @JsonKey(name: 'name_en') required final String nameEn,
       final String? form,
@@ -276,6 +278,7 @@ abstract class _IncomingDrug implements IncomingDrug {
       _$IncomingDrugImpl.fromJson;
 
   @override
+  @JsonKey(fromJson: _parseInt)
   int get id;
   @override
   @JsonKey(name: 'name_ar')
@@ -307,6 +310,7 @@ IncomingAddress _$IncomingAddressFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$IncomingAddress {
+  @JsonKey(fromJson: _parseInt)
   int get id => throw _privateConstructorUsedError;
   @JsonKey(name: 'address_line')
   String get addressLine => throw _privateConstructorUsedError;
@@ -334,7 +338,7 @@ abstract class $IncomingAddressCopyWith<$Res> {
       _$IncomingAddressCopyWithImpl<$Res, IncomingAddress>;
   @useResult
   $Res call(
-      {int id,
+      {@JsonKey(fromJson: _parseInt) int id,
       @JsonKey(name: 'address_line') String addressLine,
       String? city,
       String? district,
@@ -402,7 +406,7 @@ abstract class _$$IncomingAddressImplCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {int id,
+      {@JsonKey(fromJson: _parseInt) int id,
       @JsonKey(name: 'address_line') String addressLine,
       String? city,
       String? district,
@@ -463,7 +467,7 @@ class __$$IncomingAddressImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$IncomingAddressImpl implements _IncomingAddress {
   const _$IncomingAddressImpl(
-      {required this.id,
+      {@JsonKey(fromJson: _parseInt) required this.id,
       @JsonKey(name: 'address_line') required this.addressLine,
       this.city,
       this.district,
@@ -474,6 +478,7 @@ class _$IncomingAddressImpl implements _IncomingAddress {
       _$$IncomingAddressImplFromJson(json);
 
   @override
+  @JsonKey(fromJson: _parseInt)
   final int id;
   @override
   @JsonKey(name: 'address_line')
@@ -533,7 +538,7 @@ class _$IncomingAddressImpl implements _IncomingAddress {
 
 abstract class _IncomingAddress implements IncomingAddress {
   const factory _IncomingAddress(
-          {required final int id,
+          {@JsonKey(fromJson: _parseInt) required final int id,
           @JsonKey(name: 'address_line') required final String addressLine,
           final String? city,
           final String? district,
@@ -545,6 +550,7 @@ abstract class _IncomingAddress implements IncomingAddress {
       _$IncomingAddressImpl.fromJson;
 
   @override
+  @JsonKey(fromJson: _parseInt)
   int get id;
   @override
   @JsonKey(name: 'address_line')
@@ -574,6 +580,7 @@ IncomingPatient _$IncomingPatientFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$IncomingPatient {
+  @JsonKey(fromJson: _parseInt)
   int get id => throw _privateConstructorUsedError;
   String get name => throw _privateConstructorUsedError;
   String? get phone => throw _privateConstructorUsedError;
@@ -594,7 +601,7 @@ abstract class $IncomingPatientCopyWith<$Res> {
           IncomingPatient value, $Res Function(IncomingPatient) then) =
       _$IncomingPatientCopyWithImpl<$Res, IncomingPatient>;
   @useResult
-  $Res call({int id, String name, String? phone});
+  $Res call({@JsonKey(fromJson: _parseInt) int id, String name, String? phone});
 }
 
 /// @nodoc
@@ -641,7 +648,7 @@ abstract class _$$IncomingPatientImplCopyWith<$Res>
       __$$IncomingPatientImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({int id, String name, String? phone});
+  $Res call({@JsonKey(fromJson: _parseInt) int id, String name, String? phone});
 }
 
 /// @nodoc
@@ -682,12 +689,15 @@ class __$$IncomingPatientImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$IncomingPatientImpl implements _IncomingPatient {
   const _$IncomingPatientImpl(
-      {required this.id, required this.name, this.phone});
+      {@JsonKey(fromJson: _parseInt) required this.id,
+      required this.name,
+      this.phone});
 
   factory _$IncomingPatientImpl.fromJson(Map<String, dynamic> json) =>
       _$$IncomingPatientImplFromJson(json);
 
   @override
+  @JsonKey(fromJson: _parseInt)
   final int id;
   @override
   final String name;
@@ -732,7 +742,7 @@ class _$IncomingPatientImpl implements _IncomingPatient {
 
 abstract class _IncomingPatient implements IncomingPatient {
   const factory _IncomingPatient(
-      {required final int id,
+      {@JsonKey(fromJson: _parseInt) required final int id,
       required final String name,
       final String? phone}) = _$IncomingPatientImpl;
 
@@ -740,6 +750,7 @@ abstract class _IncomingPatient implements IncomingPatient {
       _$IncomingPatientImpl.fromJson;
 
   @override
+  @JsonKey(fromJson: _parseInt)
   int get id;
   @override
   String get name;
@@ -760,9 +771,11 @@ IncomingOrderDetail _$IncomingOrderDetailFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$IncomingOrderDetail {
+  @JsonKey(fromJson: _parseInt)
   int get id => throw _privateConstructorUsedError;
-  @JsonKey(name: 'drug_id')
+  @JsonKey(name: 'drug_id', fromJson: _parseInt)
   int get drugId => throw _privateConstructorUsedError;
+  @JsonKey(fromJson: _parseInt)
   int get quantity => throw _privateConstructorUsedError;
   String? get notes => throw _privateConstructorUsedError;
   @JsonKey(name: 'prescription_image')
@@ -797,9 +810,9 @@ abstract class $IncomingOrderDetailCopyWith<$Res> {
       _$IncomingOrderDetailCopyWithImpl<$Res, IncomingOrderDetail>;
   @useResult
   $Res call(
-      {int id,
-      @JsonKey(name: 'drug_id') int drugId,
-      int quantity,
+      {@JsonKey(fromJson: _parseInt) int id,
+      @JsonKey(name: 'drug_id', fromJson: _parseInt) int drugId,
+      @JsonKey(fromJson: _parseInt) int quantity,
       String? notes,
       @JsonKey(name: 'prescription_image') String? prescriptionImage,
       @JsonKey(name: 'requires_prescription') bool requiresPrescription,
@@ -948,9 +961,9 @@ abstract class _$$IncomingOrderDetailImplCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {int id,
-      @JsonKey(name: 'drug_id') int drugId,
-      int quantity,
+      {@JsonKey(fromJson: _parseInt) int id,
+      @JsonKey(name: 'drug_id', fromJson: _parseInt) int drugId,
+      @JsonKey(fromJson: _parseInt) int quantity,
       String? notes,
       @JsonKey(name: 'prescription_image') String? prescriptionImage,
       @JsonKey(name: 'requires_prescription') bool requiresPrescription,
@@ -1053,9 +1066,9 @@ class __$$IncomingOrderDetailImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$IncomingOrderDetailImpl implements _IncomingOrderDetail {
   const _$IncomingOrderDetailImpl(
-      {required this.id,
-      @JsonKey(name: 'drug_id') required this.drugId,
-      required this.quantity,
+      {@JsonKey(fromJson: _parseInt) required this.id,
+      @JsonKey(name: 'drug_id', fromJson: _parseInt) required this.drugId,
+      @JsonKey(fromJson: _parseInt) required this.quantity,
       this.notes,
       @JsonKey(name: 'prescription_image') this.prescriptionImage,
       @JsonKey(name: 'requires_prescription') this.requiresPrescription = false,
@@ -1070,11 +1083,13 @@ class _$IncomingOrderDetailImpl implements _IncomingOrderDetail {
       _$$IncomingOrderDetailImplFromJson(json);
 
   @override
+  @JsonKey(fromJson: _parseInt)
   final int id;
   @override
-  @JsonKey(name: 'drug_id')
+  @JsonKey(name: 'drug_id', fromJson: _parseInt)
   final int drugId;
   @override
+  @JsonKey(fromJson: _parseInt)
   final int quantity;
   @override
   final String? notes;
@@ -1168,9 +1183,9 @@ class _$IncomingOrderDetailImpl implements _IncomingOrderDetail {
 
 abstract class _IncomingOrderDetail implements IncomingOrderDetail {
   const factory _IncomingOrderDetail(
-      {required final int id,
-      @JsonKey(name: 'drug_id') required final int drugId,
-      required final int quantity,
+      {@JsonKey(fromJson: _parseInt) required final int id,
+      @JsonKey(name: 'drug_id', fromJson: _parseInt) required final int drugId,
+      @JsonKey(fromJson: _parseInt) required final int quantity,
       final String? notes,
       @JsonKey(name: 'prescription_image') final String? prescriptionImage,
       @JsonKey(name: 'requires_prescription') final bool requiresPrescription,
@@ -1187,11 +1202,13 @@ abstract class _IncomingOrderDetail implements IncomingOrderDetail {
       _$IncomingOrderDetailImpl.fromJson;
 
   @override
+  @JsonKey(fromJson: _parseInt)
   int get id;
   @override
-  @JsonKey(name: 'drug_id')
+  @JsonKey(name: 'drug_id', fromJson: _parseInt)
   int get drugId;
   @override
+  @JsonKey(fromJson: _parseInt)
   int get quantity;
   @override
   String? get notes;
@@ -1232,10 +1249,11 @@ IncomingOrder _$IncomingOrderFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$IncomingOrder {
+  @JsonKey(fromJson: _parseInt)
   int get id => throw _privateConstructorUsedError;
-  @JsonKey(name: 'order_id')
+  @JsonKey(name: 'order_id', fromJson: _parseInt)
   int get orderId => throw _privateConstructorUsedError;
-  @JsonKey(name: 'pharmacy_id')
+  @JsonKey(name: 'pharmacy_id', fromJson: _parseInt)
   int get pharmacyId => throw _privateConstructorUsedError;
   String get status => throw _privateConstructorUsedError;
   @JsonKey(name: 'sent_at')
@@ -1261,9 +1279,9 @@ abstract class $IncomingOrderCopyWith<$Res> {
       _$IncomingOrderCopyWithImpl<$Res, IncomingOrder>;
   @useResult
   $Res call(
-      {int id,
-      @JsonKey(name: 'order_id') int orderId,
-      @JsonKey(name: 'pharmacy_id') int pharmacyId,
+      {@JsonKey(fromJson: _parseInt) int id,
+      @JsonKey(name: 'order_id', fromJson: _parseInt) int orderId,
+      @JsonKey(name: 'pharmacy_id', fromJson: _parseInt) int pharmacyId,
       String status,
       @JsonKey(name: 'sent_at') String? sentAt,
       @JsonKey(name: 'expires_at') String? expiresAt,
@@ -1351,9 +1369,9 @@ abstract class _$$IncomingOrderImplCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {int id,
-      @JsonKey(name: 'order_id') int orderId,
-      @JsonKey(name: 'pharmacy_id') int pharmacyId,
+      {@JsonKey(fromJson: _parseInt) int id,
+      @JsonKey(name: 'order_id', fromJson: _parseInt) int orderId,
+      @JsonKey(name: 'pharmacy_id', fromJson: _parseInt) int pharmacyId,
       String status,
       @JsonKey(name: 'sent_at') String? sentAt,
       @JsonKey(name: 'expires_at') String? expiresAt,
@@ -1421,9 +1439,10 @@ class __$$IncomingOrderImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$IncomingOrderImpl implements _IncomingOrder {
   const _$IncomingOrderImpl(
-      {required this.id,
-      @JsonKey(name: 'order_id') required this.orderId,
-      @JsonKey(name: 'pharmacy_id') required this.pharmacyId,
+      {@JsonKey(fromJson: _parseInt) required this.id,
+      @JsonKey(name: 'order_id', fromJson: _parseInt) required this.orderId,
+      @JsonKey(name: 'pharmacy_id', fromJson: _parseInt)
+      required this.pharmacyId,
       required this.status,
       @JsonKey(name: 'sent_at') this.sentAt,
       @JsonKey(name: 'expires_at') this.expiresAt,
@@ -1433,12 +1452,13 @@ class _$IncomingOrderImpl implements _IncomingOrder {
       _$$IncomingOrderImplFromJson(json);
 
   @override
+  @JsonKey(fromJson: _parseInt)
   final int id;
   @override
-  @JsonKey(name: 'order_id')
+  @JsonKey(name: 'order_id', fromJson: _parseInt)
   final int orderId;
   @override
-  @JsonKey(name: 'pharmacy_id')
+  @JsonKey(name: 'pharmacy_id', fromJson: _parseInt)
   final int pharmacyId;
   @override
   final String status;
@@ -1495,9 +1515,11 @@ class _$IncomingOrderImpl implements _IncomingOrder {
 
 abstract class _IncomingOrder implements IncomingOrder {
   const factory _IncomingOrder(
-      {required final int id,
-      @JsonKey(name: 'order_id') required final int orderId,
-      @JsonKey(name: 'pharmacy_id') required final int pharmacyId,
+      {@JsonKey(fromJson: _parseInt) required final int id,
+      @JsonKey(name: 'order_id', fromJson: _parseInt)
+      required final int orderId,
+      @JsonKey(name: 'pharmacy_id', fromJson: _parseInt)
+      required final int pharmacyId,
       required final String status,
       @JsonKey(name: 'sent_at') final String? sentAt,
       @JsonKey(name: 'expires_at') final String? expiresAt,
@@ -1507,12 +1529,13 @@ abstract class _IncomingOrder implements IncomingOrder {
       _$IncomingOrderImpl.fromJson;
 
   @override
+  @JsonKey(fromJson: _parseInt)
   int get id;
   @override
-  @JsonKey(name: 'order_id')
+  @JsonKey(name: 'order_id', fromJson: _parseInt)
   int get orderId;
   @override
-  @JsonKey(name: 'pharmacy_id')
+  @JsonKey(name: 'pharmacy_id', fromJson: _parseInt)
   int get pharmacyId;
   @override
   String get status;

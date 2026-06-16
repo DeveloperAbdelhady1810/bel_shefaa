@@ -8,7 +8,7 @@ part of 'incoming_order.dart';
 
 _$IncomingDrugImpl _$$IncomingDrugImplFromJson(Map<String, dynamic> json) =>
     _$IncomingDrugImpl(
-      id: (json['id'] as num).toInt(),
+      id: _parseInt(json['id']),
       nameAr: json['name_ar'] as String,
       nameEn: json['name_en'] as String,
       form: json['form'] as String?,
@@ -31,7 +31,7 @@ Map<String, dynamic> _$$IncomingDrugImplToJson(_$IncomingDrugImpl instance) =>
 _$IncomingAddressImpl _$$IncomingAddressImplFromJson(
         Map<String, dynamic> json) =>
     _$IncomingAddressImpl(
-      id: (json['id'] as num).toInt(),
+      id: _parseInt(json['id']),
       addressLine: json['address_line'] as String,
       city: json['city'] as String?,
       district: json['district'] as String?,
@@ -53,7 +53,7 @@ Map<String, dynamic> _$$IncomingAddressImplToJson(
 _$IncomingPatientImpl _$$IncomingPatientImplFromJson(
         Map<String, dynamic> json) =>
     _$IncomingPatientImpl(
-      id: (json['id'] as num).toInt(),
+      id: _parseInt(json['id']),
       name: json['name'] as String,
       phone: json['phone'] as String?,
     );
@@ -69,9 +69,9 @@ Map<String, dynamic> _$$IncomingPatientImplToJson(
 _$IncomingOrderDetailImpl _$$IncomingOrderDetailImplFromJson(
         Map<String, dynamic> json) =>
     _$IncomingOrderDetailImpl(
-      id: (json['id'] as num).toInt(),
-      drugId: (json['drug_id'] as num).toInt(),
-      quantity: (json['quantity'] as num).toInt(),
+      id: _parseInt(json['id']),
+      drugId: _parseInt(json['drug_id']),
+      quantity: _parseInt(json['quantity']),
       notes: json['notes'] as String?,
       prescriptionImage: json['prescription_image'] as String?,
       requiresPrescription: json['requires_prescription'] as bool? ?? false,
@@ -109,9 +109,9 @@ Map<String, dynamic> _$$IncomingOrderDetailImplToJson(
 
 _$IncomingOrderImpl _$$IncomingOrderImplFromJson(Map<String, dynamic> json) =>
     _$IncomingOrderImpl(
-      id: (json['id'] as num).toInt(),
-      orderId: (json['order_id'] as num).toInt(),
-      pharmacyId: (json['pharmacy_id'] as num).toInt(),
+      id: _parseInt(json['id']),
+      orderId: _parseInt(json['order_id']),
+      pharmacyId: _parseInt(json['pharmacy_id']),
       status: json['status'] as String,
       sentAt: json['sent_at'] as String?,
       expiresAt: json['expires_at'] as String?,

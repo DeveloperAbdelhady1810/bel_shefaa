@@ -20,6 +20,7 @@ Pharmacy _$PharmacyFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$Pharmacy {
+  @JsonKey(fromJson: _parseInt)
   int get id => throw _privateConstructorUsedError;
   String get name => throw _privateConstructorUsedError;
   String? get phone => throw _privateConstructorUsedError;
@@ -30,7 +31,7 @@ mixin _$Pharmacy {
   double? get lat => throw _privateConstructorUsedError;
   @JsonKey(fromJson: _parseDouble)
   double? get lng => throw _privateConstructorUsedError;
-  @JsonKey(name: 'delivery_radius_km')
+  @JsonKey(name: 'delivery_radius_km', fromJson: _parseIntNullable)
   int? get deliveryRadiusKm => throw _privateConstructorUsedError;
   @JsonKey(name: 'has_delivery')
   bool get hasDelivery => throw _privateConstructorUsedError;
@@ -51,7 +52,7 @@ abstract class $PharmacyCopyWith<$Res> {
       _$PharmacyCopyWithImpl<$Res, Pharmacy>;
   @useResult
   $Res call(
-      {int id,
+      {@JsonKey(fromJson: _parseInt) int id,
       String name,
       String? phone,
       String? address,
@@ -59,7 +60,8 @@ abstract class $PharmacyCopyWith<$Res> {
       String? district,
       @JsonKey(fromJson: _parseDouble) double? lat,
       @JsonKey(fromJson: _parseDouble) double? lng,
-      @JsonKey(name: 'delivery_radius_km') int? deliveryRadiusKm,
+      @JsonKey(name: 'delivery_radius_km', fromJson: _parseIntNullable)
+      int? deliveryRadiusKm,
       @JsonKey(name: 'has_delivery') bool hasDelivery});
 }
 
@@ -143,7 +145,7 @@ abstract class _$$PharmacyImplCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {int id,
+      {@JsonKey(fromJson: _parseInt) int id,
       String name,
       String? phone,
       String? address,
@@ -151,7 +153,8 @@ abstract class _$$PharmacyImplCopyWith<$Res>
       String? district,
       @JsonKey(fromJson: _parseDouble) double? lat,
       @JsonKey(fromJson: _parseDouble) double? lng,
-      @JsonKey(name: 'delivery_radius_km') int? deliveryRadiusKm,
+      @JsonKey(name: 'delivery_radius_km', fromJson: _parseIntNullable)
+      int? deliveryRadiusKm,
       @JsonKey(name: 'has_delivery') bool hasDelivery});
 }
 
@@ -228,7 +231,7 @@ class __$$PharmacyImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$PharmacyImpl implements _Pharmacy {
   const _$PharmacyImpl(
-      {required this.id,
+      {@JsonKey(fromJson: _parseInt) required this.id,
       required this.name,
       this.phone,
       this.address,
@@ -236,13 +239,15 @@ class _$PharmacyImpl implements _Pharmacy {
       this.district,
       @JsonKey(fromJson: _parseDouble) this.lat,
       @JsonKey(fromJson: _parseDouble) this.lng,
-      @JsonKey(name: 'delivery_radius_km') this.deliveryRadiusKm,
+      @JsonKey(name: 'delivery_radius_km', fromJson: _parseIntNullable)
+      this.deliveryRadiusKm,
       @JsonKey(name: 'has_delivery') this.hasDelivery = false});
 
   factory _$PharmacyImpl.fromJson(Map<String, dynamic> json) =>
       _$$PharmacyImplFromJson(json);
 
   @override
+  @JsonKey(fromJson: _parseInt)
   final int id;
   @override
   final String name;
@@ -261,7 +266,7 @@ class _$PharmacyImpl implements _Pharmacy {
   @JsonKey(fromJson: _parseDouble)
   final double? lng;
   @override
-  @JsonKey(name: 'delivery_radius_km')
+  @JsonKey(name: 'delivery_radius_km', fromJson: _parseIntNullable)
   final int? deliveryRadiusKm;
   @override
   @JsonKey(name: 'has_delivery')
@@ -315,7 +320,7 @@ class _$PharmacyImpl implements _Pharmacy {
 
 abstract class _Pharmacy implements Pharmacy {
   const factory _Pharmacy(
-      {required final int id,
+      {@JsonKey(fromJson: _parseInt) required final int id,
       required final String name,
       final String? phone,
       final String? address,
@@ -323,13 +328,15 @@ abstract class _Pharmacy implements Pharmacy {
       final String? district,
       @JsonKey(fromJson: _parseDouble) final double? lat,
       @JsonKey(fromJson: _parseDouble) final double? lng,
-      @JsonKey(name: 'delivery_radius_km') final int? deliveryRadiusKm,
+      @JsonKey(name: 'delivery_radius_km', fromJson: _parseIntNullable)
+      final int? deliveryRadiusKm,
       @JsonKey(name: 'has_delivery') final bool hasDelivery}) = _$PharmacyImpl;
 
   factory _Pharmacy.fromJson(Map<String, dynamic> json) =
       _$PharmacyImpl.fromJson;
 
   @override
+  @JsonKey(fromJson: _parseInt)
   int get id;
   @override
   String get name;
@@ -348,7 +355,7 @@ abstract class _Pharmacy implements Pharmacy {
   @JsonKey(fromJson: _parseDouble)
   double? get lng;
   @override
-  @JsonKey(name: 'delivery_radius_km')
+  @JsonKey(name: 'delivery_radius_km', fromJson: _parseIntNullable)
   int? get deliveryRadiusKm;
   @override
   @JsonKey(name: 'has_delivery')
@@ -368,10 +375,12 @@ PharmacyUser _$PharmacyUserFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$PharmacyUser {
+  @JsonKey(fromJson: _parseInt)
   int get id => throw _privateConstructorUsedError;
   String get name => throw _privateConstructorUsedError;
   String get email => throw _privateConstructorUsedError;
   String get role => throw _privateConstructorUsedError;
+  @JsonKey(name: 'pharmacy_id', fromJson: _parseIntNullable)
   int? get pharmacyId => throw _privateConstructorUsedError;
   Pharmacy? get pharmacy => throw _privateConstructorUsedError;
 
@@ -392,10 +401,11 @@ abstract class $PharmacyUserCopyWith<$Res> {
       _$PharmacyUserCopyWithImpl<$Res, PharmacyUser>;
   @useResult
   $Res call(
-      {int id,
+      {@JsonKey(fromJson: _parseInt) int id,
       String name,
       String email,
       String role,
+      @JsonKey(name: 'pharmacy_id', fromJson: _parseIntNullable)
       int? pharmacyId,
       Pharmacy? pharmacy});
 
@@ -476,10 +486,11 @@ abstract class _$$PharmacyUserImplCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {int id,
+      {@JsonKey(fromJson: _parseInt) int id,
       String name,
       String email,
       String role,
+      @JsonKey(name: 'pharmacy_id', fromJson: _parseIntNullable)
       int? pharmacyId,
       Pharmacy? pharmacy});
 
@@ -540,10 +551,11 @@ class __$$PharmacyUserImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$PharmacyUserImpl implements _PharmacyUser {
   const _$PharmacyUserImpl(
-      {required this.id,
+      {@JsonKey(fromJson: _parseInt) required this.id,
       required this.name,
       required this.email,
       required this.role,
+      @JsonKey(name: 'pharmacy_id', fromJson: _parseIntNullable)
       this.pharmacyId,
       this.pharmacy});
 
@@ -551,6 +563,7 @@ class _$PharmacyUserImpl implements _PharmacyUser {
       _$$PharmacyUserImplFromJson(json);
 
   @override
+  @JsonKey(fromJson: _parseInt)
   final int id;
   @override
   final String name;
@@ -559,6 +572,7 @@ class _$PharmacyUserImpl implements _PharmacyUser {
   @override
   final String role;
   @override
+  @JsonKey(name: 'pharmacy_id', fromJson: _parseIntNullable)
   final int? pharmacyId;
   @override
   final Pharmacy? pharmacy;
@@ -606,10 +620,11 @@ class _$PharmacyUserImpl implements _PharmacyUser {
 
 abstract class _PharmacyUser implements PharmacyUser {
   const factory _PharmacyUser(
-      {required final int id,
+      {@JsonKey(fromJson: _parseInt) required final int id,
       required final String name,
       required final String email,
       required final String role,
+      @JsonKey(name: 'pharmacy_id', fromJson: _parseIntNullable)
       final int? pharmacyId,
       final Pharmacy? pharmacy}) = _$PharmacyUserImpl;
 
@@ -617,6 +632,7 @@ abstract class _PharmacyUser implements PharmacyUser {
       _$PharmacyUserImpl.fromJson;
 
   @override
+  @JsonKey(fromJson: _parseInt)
   int get id;
   @override
   String get name;
@@ -625,6 +641,7 @@ abstract class _PharmacyUser implements PharmacyUser {
   @override
   String get role;
   @override
+  @JsonKey(name: 'pharmacy_id', fromJson: _parseIntNullable)
   int? get pharmacyId;
   @override
   Pharmacy? get pharmacy;

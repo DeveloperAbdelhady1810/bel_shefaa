@@ -7,10 +7,13 @@ part 'incoming_order.g.dart';
 double? _parseDouble(dynamic v) =>
     v == null ? null : double.tryParse(v.toString());
 
+int _parseInt(dynamic v) =>
+    v == null ? 0 : int.tryParse(v.toString()) ?? 0;
+
 @freezed
 class IncomingDrug with _$IncomingDrug {
   const factory IncomingDrug({
-    required int id,
+    @JsonKey(fromJson: _parseInt) required int id,
     @JsonKey(name: 'name_ar') required String nameAr,
     @JsonKey(name: 'name_en') required String nameEn,
     String? form,
@@ -28,7 +31,7 @@ class IncomingDrug with _$IncomingDrug {
 @freezed
 class IncomingAddress with _$IncomingAddress {
   const factory IncomingAddress({
-    required int id,
+    @JsonKey(fromJson: _parseInt) required int id,
     @JsonKey(name: 'address_line') required String addressLine,
     String? city,
     String? district,
@@ -43,7 +46,7 @@ class IncomingAddress with _$IncomingAddress {
 @freezed
 class IncomingPatient with _$IncomingPatient {
   const factory IncomingPatient({
-    required int id,
+    @JsonKey(fromJson: _parseInt) required int id,
     required String name,
     String? phone,
   }) = _IncomingPatient;
@@ -55,9 +58,9 @@ class IncomingPatient with _$IncomingPatient {
 @freezed
 class IncomingOrderDetail with _$IncomingOrderDetail {
   const factory IncomingOrderDetail({
-    required int id,
-    @JsonKey(name: 'drug_id') required int drugId,
-    required int quantity,
+    @JsonKey(fromJson: _parseInt) required int id,
+    @JsonKey(name: 'drug_id', fromJson: _parseInt) required int drugId,
+    @JsonKey(fromJson: _parseInt) required int quantity,
     String? notes,
     @JsonKey(name: 'prescription_image') String? prescriptionImage,
     @JsonKey(name: 'requires_prescription')
@@ -78,9 +81,9 @@ class IncomingOrderDetail with _$IncomingOrderDetail {
 @freezed
 class IncomingOrder with _$IncomingOrder {
   const factory IncomingOrder({
-    required int id,
-    @JsonKey(name: 'order_id') required int orderId,
-    @JsonKey(name: 'pharmacy_id') required int pharmacyId,
+    @JsonKey(fromJson: _parseInt) required int id,
+    @JsonKey(name: 'order_id', fromJson: _parseInt) required int orderId,
+    @JsonKey(name: 'pharmacy_id', fromJson: _parseInt) required int pharmacyId,
     required String status,
     @JsonKey(name: 'sent_at') String? sentAt,
     @JsonKey(name: 'expires_at') String? expiresAt,

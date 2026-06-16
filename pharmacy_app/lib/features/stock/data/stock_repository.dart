@@ -33,9 +33,9 @@ class StockRepository {
     try {
       final res = await _dio.post(ApiPaths.pharmacyStockLookup, data: {'code': code});
       final drug = res.data['drug'] as Map;
-      final quantity = (res.data['quantity'] as num?)?.toInt() ?? 0;
+      final quantity = int.tryParse(res.data['quantity'].toString()) ?? 0;
       return DrugLookupResult(
-        drugId: drug['id'] as int,
+        drugId: int.tryParse(drug['id'].toString()) ?? 0,
         nameAr: drug['name_ar'] as String,
         nameEn: drug['name_en'] as String?,
         form: drug['form'] as String?,
