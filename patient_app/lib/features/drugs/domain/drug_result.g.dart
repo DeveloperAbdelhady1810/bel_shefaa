@@ -15,7 +15,7 @@ _$DrugResultImpl _$$DrugResultImplFromJson(Map<String, dynamic> json) =>
       form: json['form'] as String?,
       strength: json['strength'] as String?,
       unit: json['unit'] as String?,
-      officialPriceEgp: (json['official_price_egp'] as num?)?.toDouble(),
+      officialPriceEgp: _parseDouble(json['official_price_egp']),
       requiresPrescription: json['requires_prescription'] as bool? ?? false,
       available: json['available'] as bool? ?? false,
     );

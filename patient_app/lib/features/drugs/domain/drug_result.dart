@@ -4,6 +4,9 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 part 'drug_result.freezed.dart';
 part 'drug_result.g.dart';
 
+double? _parseDouble(dynamic v) =>
+    v == null ? null : double.tryParse(v.toString());
+
 @freezed
 class DrugResult with _$DrugResult {
   const factory DrugResult({
@@ -14,7 +17,7 @@ class DrugResult with _$DrugResult {
     String? form,
     String? strength,
     String? unit,
-    @JsonKey(name: 'official_price_egp') double? officialPriceEgp,
+    @JsonKey(name: 'official_price_egp', fromJson: _parseDouble) double? officialPriceEgp,
     @JsonKey(name: 'requires_prescription') @Default(false) bool requiresPrescription,
     @Default(false) bool available,
   }) = _DrugResult;

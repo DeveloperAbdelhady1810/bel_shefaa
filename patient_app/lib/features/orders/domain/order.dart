@@ -4,6 +4,9 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 part 'order.freezed.dart';
 part 'order.g.dart';
 
+double? _parseDouble(dynamic v) =>
+    v == null ? null : double.tryParse(v.toString());
+
 @freezed
 class OrderDrug with _$OrderDrug {
   const factory OrderDrug({
@@ -38,9 +41,9 @@ class Order with _$Order {
     required String status,
     @JsonKey(name: 'payment_method') required String paymentMethod,
     @JsonKey(name: 'payment_status') required String paymentStatus,
-    @JsonKey(name: 'cod_amount') double? codAmount,
-    @JsonKey(name: 'delivery_fee') double? deliveryFee,
-    @JsonKey(name: 'platform_fee') double? platformFee,
+    @JsonKey(name: 'cod_amount', fromJson: _parseDouble) double? codAmount,
+    @JsonKey(name: 'delivery_fee', fromJson: _parseDouble) double? deliveryFee,
+    @JsonKey(name: 'platform_fee', fromJson: _parseDouble) double? platformFee,
     @JsonKey(name: 'requires_prescription') @Default(false) bool requiresPrescription,
     @JsonKey(name: 'prescription_image') String? prescriptionImage,
     String? notes,

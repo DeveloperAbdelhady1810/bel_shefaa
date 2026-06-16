@@ -13,8 +13,8 @@ _$PatientAddressImpl _$$PatientAddressImplFromJson(Map<String, dynamic> json) =>
       addressLine: json['address_line'] as String,
       city: json['city'] as String?,
       district: json['district'] as String?,
-      lat: (json['lat'] as num?)?.toDouble(),
-      lng: (json['lng'] as num?)?.toDouble(),
+      lat: _parseDouble(json['lat']),
+      lng: _parseDouble(json['lng']),
       isDefault: json['is_default'] as bool? ?? false,
     );
 

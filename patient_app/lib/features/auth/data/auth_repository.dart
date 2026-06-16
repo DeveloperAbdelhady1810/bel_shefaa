@@ -24,7 +24,7 @@ class AuthRepository {
     }
   }
 
-  Future<({String token, Patient patient, bool isNew})> verifyOtp({
+  Future<({String? token, Patient? patient, bool isNew})> verifyOtp({
     required String email,
     required String code,
     String? name,
@@ -38,11 +38,15 @@ class AuthRepository {
         if (phone != null) 'phone': phone,
         'device_name': 'patient_mobile',
       });
+      // Backend returns {is_new: true} when OTP is valid but profile is incomplete.
+      if (res.data['is_new'] == true) {
+        return (token: null, patient: null, isNew: true);
+      }
       final token = res.data['token'] as String;
       await _storage.write(token);
       final patient =
           Patient.fromJson(Map<String, dynamic>.from(res.data['patient'] as Map));
-      return (token: token, patient: patient, isNew: patient.addresses.isEmpty);
+      return (token: token, patient: patient, isNew: false);
     } on DioException catch (e) {
       throw e.error is ApiException
           ? e.error as ApiException

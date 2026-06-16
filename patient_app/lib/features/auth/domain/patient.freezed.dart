@@ -26,7 +26,9 @@ mixin _$PatientAddress {
   String get addressLine => throw _privateConstructorUsedError;
   String? get city => throw _privateConstructorUsedError;
   String? get district => throw _privateConstructorUsedError;
+  @JsonKey(fromJson: _parseDouble)
   double? get lat => throw _privateConstructorUsedError;
+  @JsonKey(fromJson: _parseDouble)
   double? get lng => throw _privateConstructorUsedError;
   @JsonKey(name: 'is_default')
   bool get isDefault => throw _privateConstructorUsedError;
@@ -53,8 +55,8 @@ abstract class $PatientAddressCopyWith<$Res> {
       @JsonKey(name: 'address_line') String addressLine,
       String? city,
       String? district,
-      double? lat,
-      double? lng,
+      @JsonKey(fromJson: _parseDouble) double? lat,
+      @JsonKey(fromJson: _parseDouble) double? lng,
       @JsonKey(name: 'is_default') bool isDefault});
 }
 
@@ -133,8 +135,8 @@ abstract class _$$PatientAddressImplCopyWith<$Res>
       @JsonKey(name: 'address_line') String addressLine,
       String? city,
       String? district,
-      double? lat,
-      double? lng,
+      @JsonKey(fromJson: _parseDouble) double? lat,
+      @JsonKey(fromJson: _parseDouble) double? lng,
       @JsonKey(name: 'is_default') bool isDefault});
 }
 
@@ -206,8 +208,8 @@ class _$PatientAddressImpl implements _PatientAddress {
       @JsonKey(name: 'address_line') required this.addressLine,
       this.city,
       this.district,
-      this.lat,
-      this.lng,
+      @JsonKey(fromJson: _parseDouble) this.lat,
+      @JsonKey(fromJson: _parseDouble) this.lng,
       @JsonKey(name: 'is_default') this.isDefault = false});
 
   factory _$PatientAddressImpl.fromJson(Map<String, dynamic> json) =>
@@ -225,8 +227,10 @@ class _$PatientAddressImpl implements _PatientAddress {
   @override
   final String? district;
   @override
+  @JsonKey(fromJson: _parseDouble)
   final double? lat;
   @override
+  @JsonKey(fromJson: _parseDouble)
   final double? lng;
   @override
   @JsonKey(name: 'is_default')
@@ -284,8 +288,8 @@ abstract class _PatientAddress implements PatientAddress {
           @JsonKey(name: 'address_line') required final String addressLine,
           final String? city,
           final String? district,
-          final double? lat,
-          final double? lng,
+          @JsonKey(fromJson: _parseDouble) final double? lat,
+          @JsonKey(fromJson: _parseDouble) final double? lng,
           @JsonKey(name: 'is_default') final bool isDefault}) =
       _$PatientAddressImpl;
 
@@ -304,8 +308,10 @@ abstract class _PatientAddress implements PatientAddress {
   @override
   String? get district;
   @override
+  @JsonKey(fromJson: _parseDouble)
   double? get lat;
   @override
+  @JsonKey(fromJson: _parseDouble)
   double? get lng;
   @override
   @JsonKey(name: 'is_default')

@@ -30,7 +30,7 @@ mixin _$DrugResult {
   String? get form => throw _privateConstructorUsedError;
   String? get strength => throw _privateConstructorUsedError;
   String? get unit => throw _privateConstructorUsedError;
-  @JsonKey(name: 'official_price_egp')
+  @JsonKey(name: 'official_price_egp', fromJson: _parseDouble)
   double? get officialPriceEgp => throw _privateConstructorUsedError;
   @JsonKey(name: 'requires_prescription')
   bool get requiresPrescription => throw _privateConstructorUsedError;
@@ -60,7 +60,8 @@ abstract class $DrugResultCopyWith<$Res> {
       String? form,
       String? strength,
       String? unit,
-      @JsonKey(name: 'official_price_egp') double? officialPriceEgp,
+      @JsonKey(name: 'official_price_egp', fromJson: _parseDouble)
+      double? officialPriceEgp,
       @JsonKey(name: 'requires_prescription') bool requiresPrescription,
       bool available});
 }
@@ -152,7 +153,8 @@ abstract class _$$DrugResultImplCopyWith<$Res>
       String? form,
       String? strength,
       String? unit,
-      @JsonKey(name: 'official_price_egp') double? officialPriceEgp,
+      @JsonKey(name: 'official_price_egp', fromJson: _parseDouble)
+      double? officialPriceEgp,
       @JsonKey(name: 'requires_prescription') bool requiresPrescription,
       bool available});
 }
@@ -237,7 +239,8 @@ class _$DrugResultImpl implements _DrugResult {
       this.form,
       this.strength,
       this.unit,
-      @JsonKey(name: 'official_price_egp') this.officialPriceEgp,
+      @JsonKey(name: 'official_price_egp', fromJson: _parseDouble)
+      this.officialPriceEgp,
       @JsonKey(name: 'requires_prescription') this.requiresPrescription = false,
       this.available = false});
 
@@ -262,7 +265,7 @@ class _$DrugResultImpl implements _DrugResult {
   @override
   final String? unit;
   @override
-  @JsonKey(name: 'official_price_egp')
+  @JsonKey(name: 'official_price_egp', fromJson: _parseDouble)
   final double? officialPriceEgp;
   @override
   @JsonKey(name: 'requires_prescription')
@@ -338,7 +341,8 @@ abstract class _DrugResult implements DrugResult {
       final String? form,
       final String? strength,
       final String? unit,
-      @JsonKey(name: 'official_price_egp') final double? officialPriceEgp,
+      @JsonKey(name: 'official_price_egp', fromJson: _parseDouble)
+      final double? officialPriceEgp,
       @JsonKey(name: 'requires_prescription') final bool requiresPrescription,
       final bool available}) = _$DrugResultImpl;
 
@@ -363,7 +367,7 @@ abstract class _DrugResult implements DrugResult {
   @override
   String? get unit;
   @override
-  @JsonKey(name: 'official_price_egp')
+  @JsonKey(name: 'official_price_egp', fromJson: _parseDouble)
   double? get officialPriceEgp;
   @override
   @JsonKey(name: 'requires_prescription')

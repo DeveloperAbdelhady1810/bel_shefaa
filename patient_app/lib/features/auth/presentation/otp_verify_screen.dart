@@ -56,10 +56,10 @@ class _OtpVerifyScreenState extends ConsumerState<OtpVerifyScreen> {
         return;
       }
 
-      ref.read(authControllerProvider.notifier).setAuthenticated(result.patient);
+      ref.read(authControllerProvider.notifier).setAuthenticated(result.patient!);
       if (!mounted) return;
       // If new user with no address yet → go to onboarding address screen
-      if (result.patient.addresses.isEmpty) {
+      if (result.patient!.addresses.isEmpty) {
         context.go('/onboarding-address');
       } else {
         context.go('/home');

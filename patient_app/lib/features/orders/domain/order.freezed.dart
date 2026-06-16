@@ -471,11 +471,11 @@ mixin _$Order {
   String get paymentMethod => throw _privateConstructorUsedError;
   @JsonKey(name: 'payment_status')
   String get paymentStatus => throw _privateConstructorUsedError;
-  @JsonKey(name: 'cod_amount')
+  @JsonKey(name: 'cod_amount', fromJson: _parseDouble)
   double? get codAmount => throw _privateConstructorUsedError;
-  @JsonKey(name: 'delivery_fee')
+  @JsonKey(name: 'delivery_fee', fromJson: _parseDouble)
   double? get deliveryFee => throw _privateConstructorUsedError;
-  @JsonKey(name: 'platform_fee')
+  @JsonKey(name: 'platform_fee', fromJson: _parseDouble)
   double? get platformFee => throw _privateConstructorUsedError;
   @JsonKey(name: 'requires_prescription')
   bool get requiresPrescription => throw _privateConstructorUsedError;
@@ -512,9 +512,11 @@ abstract class $OrderCopyWith<$Res> {
       String status,
       @JsonKey(name: 'payment_method') String paymentMethod,
       @JsonKey(name: 'payment_status') String paymentStatus,
-      @JsonKey(name: 'cod_amount') double? codAmount,
-      @JsonKey(name: 'delivery_fee') double? deliveryFee,
-      @JsonKey(name: 'platform_fee') double? platformFee,
+      @JsonKey(name: 'cod_amount', fromJson: _parseDouble) double? codAmount,
+      @JsonKey(name: 'delivery_fee', fromJson: _parseDouble)
+      double? deliveryFee,
+      @JsonKey(name: 'platform_fee', fromJson: _parseDouble)
+      double? platformFee,
       @JsonKey(name: 'requires_prescription') bool requiresPrescription,
       @JsonKey(name: 'prescription_image') String? prescriptionImage,
       String? notes,
@@ -676,9 +678,11 @@ abstract class _$$OrderImplCopyWith<$Res> implements $OrderCopyWith<$Res> {
       String status,
       @JsonKey(name: 'payment_method') String paymentMethod,
       @JsonKey(name: 'payment_status') String paymentStatus,
-      @JsonKey(name: 'cod_amount') double? codAmount,
-      @JsonKey(name: 'delivery_fee') double? deliveryFee,
-      @JsonKey(name: 'platform_fee') double? platformFee,
+      @JsonKey(name: 'cod_amount', fromJson: _parseDouble) double? codAmount,
+      @JsonKey(name: 'delivery_fee', fromJson: _parseDouble)
+      double? deliveryFee,
+      @JsonKey(name: 'platform_fee', fromJson: _parseDouble)
+      double? platformFee,
       @JsonKey(name: 'requires_prescription') bool requiresPrescription,
       @JsonKey(name: 'prescription_image') String? prescriptionImage,
       String? notes,
@@ -808,9 +812,9 @@ class _$OrderImpl implements _Order {
       required this.status,
       @JsonKey(name: 'payment_method') required this.paymentMethod,
       @JsonKey(name: 'payment_status') required this.paymentStatus,
-      @JsonKey(name: 'cod_amount') this.codAmount,
-      @JsonKey(name: 'delivery_fee') this.deliveryFee,
-      @JsonKey(name: 'platform_fee') this.platformFee,
+      @JsonKey(name: 'cod_amount', fromJson: _parseDouble) this.codAmount,
+      @JsonKey(name: 'delivery_fee', fromJson: _parseDouble) this.deliveryFee,
+      @JsonKey(name: 'platform_fee', fromJson: _parseDouble) this.platformFee,
       @JsonKey(name: 'requires_prescription') this.requiresPrescription = false,
       @JsonKey(name: 'prescription_image') this.prescriptionImage,
       this.notes,
@@ -839,13 +843,13 @@ class _$OrderImpl implements _Order {
   @JsonKey(name: 'payment_status')
   final String paymentStatus;
   @override
-  @JsonKey(name: 'cod_amount')
+  @JsonKey(name: 'cod_amount', fromJson: _parseDouble)
   final double? codAmount;
   @override
-  @JsonKey(name: 'delivery_fee')
+  @JsonKey(name: 'delivery_fee', fromJson: _parseDouble)
   final double? deliveryFee;
   @override
-  @JsonKey(name: 'platform_fee')
+  @JsonKey(name: 'platform_fee', fromJson: _parseDouble)
   final double? platformFee;
   @override
   @JsonKey(name: 'requires_prescription')
@@ -956,9 +960,12 @@ abstract class _Order implements Order {
       required final String status,
       @JsonKey(name: 'payment_method') required final String paymentMethod,
       @JsonKey(name: 'payment_status') required final String paymentStatus,
-      @JsonKey(name: 'cod_amount') final double? codAmount,
-      @JsonKey(name: 'delivery_fee') final double? deliveryFee,
-      @JsonKey(name: 'platform_fee') final double? platformFee,
+      @JsonKey(name: 'cod_amount', fromJson: _parseDouble)
+      final double? codAmount,
+      @JsonKey(name: 'delivery_fee', fromJson: _parseDouble)
+      final double? deliveryFee,
+      @JsonKey(name: 'platform_fee', fromJson: _parseDouble)
+      final double? platformFee,
       @JsonKey(name: 'requires_prescription') final bool requiresPrescription,
       @JsonKey(name: 'prescription_image') final String? prescriptionImage,
       final String? notes,
@@ -986,13 +993,13 @@ abstract class _Order implements Order {
   @JsonKey(name: 'payment_status')
   String get paymentStatus;
   @override
-  @JsonKey(name: 'cod_amount')
+  @JsonKey(name: 'cod_amount', fromJson: _parseDouble)
   double? get codAmount;
   @override
-  @JsonKey(name: 'delivery_fee')
+  @JsonKey(name: 'delivery_fee', fromJson: _parseDouble)
   double? get deliveryFee;
   @override
-  @JsonKey(name: 'platform_fee')
+  @JsonKey(name: 'platform_fee', fromJson: _parseDouble)
   double? get platformFee;
   @override
   @JsonKey(name: 'requires_prescription')
