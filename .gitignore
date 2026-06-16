@@ -1,0 +1,10 @@
+# Backend (Laravel) and dataset are intentionally NOT part of this repo.
+# Only the Flutter apps (patient_app/, pharmacy_app/) are pushed to GitHub.
+/backend/
+/egyptian-drug-database/
+
+# General OS / editor noise
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

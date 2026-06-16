@@ -1,0 +1,21 @@
+# Normalise all text files to LF in the repo (Windows writes CRLF locally,
+# macOS/Linux get LF when they clone — no platform surprises).
+* text=auto eol=lf
+
+# Dart / Flutter source
+*.dart text eol=lf
+*.yaml text eol=lf
+*.json text eol=lf
+*.md   text eol=lf
+*.xml  text eol=lf
+*.gradle text eol=lf
+*.properties text eol=lf
+
+# Keep binary files untouched
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.ico  binary
+*.keystore binary
+*.jks  binary
