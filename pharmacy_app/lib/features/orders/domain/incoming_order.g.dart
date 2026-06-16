@@ -35,8 +35,8 @@ _$IncomingAddressImpl _$$IncomingAddressImplFromJson(
       addressLine: json['address_line'] as String,
       city: json['city'] as String?,
       district: json['district'] as String?,
-      lat: (json['lat'] as num?)?.toDouble(),
-      lng: (json['lng'] as num?)?.toDouble(),
+      lat: _parseDouble(json['lat']),
+      lng: _parseDouble(json['lng']),
     );
 
 Map<String, dynamic> _$$IncomingAddressImplToJson(
@@ -75,8 +75,8 @@ _$IncomingOrderDetailImpl _$$IncomingOrderDetailImplFromJson(
       notes: json['notes'] as String?,
       prescriptionImage: json['prescription_image'] as String?,
       requiresPrescription: json['requires_prescription'] as bool? ?? false,
-      codAmount: (json['cod_amount'] as num?)?.toDouble(),
-      deliveryFee: (json['delivery_fee'] as num?)?.toDouble(),
+      codAmount: _parseDouble(json['cod_amount']),
+      deliveryFee: _parseDouble(json['delivery_fee']),
       paymentMethod: json['payment_method'] as String?,
       drug: json['drug'] == null
           ? null

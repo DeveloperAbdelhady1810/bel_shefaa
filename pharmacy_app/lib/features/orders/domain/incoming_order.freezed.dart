@@ -312,7 +312,9 @@ mixin _$IncomingAddress {
   String get addressLine => throw _privateConstructorUsedError;
   String? get city => throw _privateConstructorUsedError;
   String? get district => throw _privateConstructorUsedError;
+  @JsonKey(fromJson: _parseDouble)
   double? get lat => throw _privateConstructorUsedError;
+  @JsonKey(fromJson: _parseDouble)
   double? get lng => throw _privateConstructorUsedError;
 
   /// Serializes this IncomingAddress to a JSON map.
@@ -336,8 +338,8 @@ abstract class $IncomingAddressCopyWith<$Res> {
       @JsonKey(name: 'address_line') String addressLine,
       String? city,
       String? district,
-      double? lat,
-      double? lng});
+      @JsonKey(fromJson: _parseDouble) double? lat,
+      @JsonKey(fromJson: _parseDouble) double? lng});
 }
 
 /// @nodoc
@@ -404,8 +406,8 @@ abstract class _$$IncomingAddressImplCopyWith<$Res>
       @JsonKey(name: 'address_line') String addressLine,
       String? city,
       String? district,
-      double? lat,
-      double? lng});
+      @JsonKey(fromJson: _parseDouble) double? lat,
+      @JsonKey(fromJson: _parseDouble) double? lng});
 }
 
 /// @nodoc
@@ -465,8 +467,8 @@ class _$IncomingAddressImpl implements _IncomingAddress {
       @JsonKey(name: 'address_line') required this.addressLine,
       this.city,
       this.district,
-      this.lat,
-      this.lng});
+      @JsonKey(fromJson: _parseDouble) this.lat,
+      @JsonKey(fromJson: _parseDouble) this.lng});
 
   factory _$IncomingAddressImpl.fromJson(Map<String, dynamic> json) =>
       _$$IncomingAddressImplFromJson(json);
@@ -481,8 +483,10 @@ class _$IncomingAddressImpl implements _IncomingAddress {
   @override
   final String? district;
   @override
+  @JsonKey(fromJson: _parseDouble)
   final double? lat;
   @override
+  @JsonKey(fromJson: _parseDouble)
   final double? lng;
 
   @override
@@ -529,12 +533,13 @@ class _$IncomingAddressImpl implements _IncomingAddress {
 
 abstract class _IncomingAddress implements IncomingAddress {
   const factory _IncomingAddress(
-      {required final int id,
-      @JsonKey(name: 'address_line') required final String addressLine,
-      final String? city,
-      final String? district,
-      final double? lat,
-      final double? lng}) = _$IncomingAddressImpl;
+          {required final int id,
+          @JsonKey(name: 'address_line') required final String addressLine,
+          final String? city,
+          final String? district,
+          @JsonKey(fromJson: _parseDouble) final double? lat,
+          @JsonKey(fromJson: _parseDouble) final double? lng}) =
+      _$IncomingAddressImpl;
 
   factory _IncomingAddress.fromJson(Map<String, dynamic> json) =
       _$IncomingAddressImpl.fromJson;
@@ -549,8 +554,10 @@ abstract class _IncomingAddress implements IncomingAddress {
   @override
   String? get district;
   @override
+  @JsonKey(fromJson: _parseDouble)
   double? get lat;
   @override
+  @JsonKey(fromJson: _parseDouble)
   double? get lng;
 
   /// Create a copy of IncomingAddress
@@ -762,9 +769,9 @@ mixin _$IncomingOrderDetail {
   String? get prescriptionImage => throw _privateConstructorUsedError;
   @JsonKey(name: 'requires_prescription')
   bool get requiresPrescription => throw _privateConstructorUsedError;
-  @JsonKey(name: 'cod_amount')
+  @JsonKey(name: 'cod_amount', fromJson: _parseDouble)
   double? get codAmount => throw _privateConstructorUsedError;
-  @JsonKey(name: 'delivery_fee')
+  @JsonKey(name: 'delivery_fee', fromJson: _parseDouble)
   double? get deliveryFee => throw _privateConstructorUsedError;
   @JsonKey(name: 'payment_method')
   String? get paymentMethod => throw _privateConstructorUsedError;
@@ -796,8 +803,9 @@ abstract class $IncomingOrderDetailCopyWith<$Res> {
       String? notes,
       @JsonKey(name: 'prescription_image') String? prescriptionImage,
       @JsonKey(name: 'requires_prescription') bool requiresPrescription,
-      @JsonKey(name: 'cod_amount') double? codAmount,
-      @JsonKey(name: 'delivery_fee') double? deliveryFee,
+      @JsonKey(name: 'cod_amount', fromJson: _parseDouble) double? codAmount,
+      @JsonKey(name: 'delivery_fee', fromJson: _parseDouble)
+      double? deliveryFee,
       @JsonKey(name: 'payment_method') String? paymentMethod,
       IncomingDrug? drug,
       @JsonKey(name: 'patient_address') IncomingAddress? patientAddress,
@@ -946,8 +954,9 @@ abstract class _$$IncomingOrderDetailImplCopyWith<$Res>
       String? notes,
       @JsonKey(name: 'prescription_image') String? prescriptionImage,
       @JsonKey(name: 'requires_prescription') bool requiresPrescription,
-      @JsonKey(name: 'cod_amount') double? codAmount,
-      @JsonKey(name: 'delivery_fee') double? deliveryFee,
+      @JsonKey(name: 'cod_amount', fromJson: _parseDouble) double? codAmount,
+      @JsonKey(name: 'delivery_fee', fromJson: _parseDouble)
+      double? deliveryFee,
       @JsonKey(name: 'payment_method') String? paymentMethod,
       IncomingDrug? drug,
       @JsonKey(name: 'patient_address') IncomingAddress? patientAddress,
@@ -1050,8 +1059,8 @@ class _$IncomingOrderDetailImpl implements _IncomingOrderDetail {
       this.notes,
       @JsonKey(name: 'prescription_image') this.prescriptionImage,
       @JsonKey(name: 'requires_prescription') this.requiresPrescription = false,
-      @JsonKey(name: 'cod_amount') this.codAmount,
-      @JsonKey(name: 'delivery_fee') this.deliveryFee,
+      @JsonKey(name: 'cod_amount', fromJson: _parseDouble) this.codAmount,
+      @JsonKey(name: 'delivery_fee', fromJson: _parseDouble) this.deliveryFee,
       @JsonKey(name: 'payment_method') this.paymentMethod,
       this.drug,
       @JsonKey(name: 'patient_address') this.patientAddress,
@@ -1076,10 +1085,10 @@ class _$IncomingOrderDetailImpl implements _IncomingOrderDetail {
   @JsonKey(name: 'requires_prescription')
   final bool requiresPrescription;
   @override
-  @JsonKey(name: 'cod_amount')
+  @JsonKey(name: 'cod_amount', fromJson: _parseDouble)
   final double? codAmount;
   @override
-  @JsonKey(name: 'delivery_fee')
+  @JsonKey(name: 'delivery_fee', fromJson: _parseDouble)
   final double? deliveryFee;
   @override
   @JsonKey(name: 'payment_method')
@@ -1165,8 +1174,10 @@ abstract class _IncomingOrderDetail implements IncomingOrderDetail {
       final String? notes,
       @JsonKey(name: 'prescription_image') final String? prescriptionImage,
       @JsonKey(name: 'requires_prescription') final bool requiresPrescription,
-      @JsonKey(name: 'cod_amount') final double? codAmount,
-      @JsonKey(name: 'delivery_fee') final double? deliveryFee,
+      @JsonKey(name: 'cod_amount', fromJson: _parseDouble)
+      final double? codAmount,
+      @JsonKey(name: 'delivery_fee', fromJson: _parseDouble)
+      final double? deliveryFee,
       @JsonKey(name: 'payment_method') final String? paymentMethod,
       final IncomingDrug? drug,
       @JsonKey(name: 'patient_address') final IncomingAddress? patientAddress,
@@ -1191,10 +1202,10 @@ abstract class _IncomingOrderDetail implements IncomingOrderDetail {
   @JsonKey(name: 'requires_prescription')
   bool get requiresPrescription;
   @override
-  @JsonKey(name: 'cod_amount')
+  @JsonKey(name: 'cod_amount', fromJson: _parseDouble)
   double? get codAmount;
   @override
-  @JsonKey(name: 'delivery_fee')
+  @JsonKey(name: 'delivery_fee', fromJson: _parseDouble)
   double? get deliveryFee;
   @override
   @JsonKey(name: 'payment_method')

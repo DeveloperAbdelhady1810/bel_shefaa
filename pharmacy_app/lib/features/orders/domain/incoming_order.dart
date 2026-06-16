@@ -4,6 +4,9 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 part 'incoming_order.freezed.dart';
 part 'incoming_order.g.dart';
 
+double? _parseDouble(dynamic v) =>
+    v == null ? null : double.tryParse(v.toString());
+
 @freezed
 class IncomingDrug with _$IncomingDrug {
   const factory IncomingDrug({
@@ -29,8 +32,8 @@ class IncomingAddress with _$IncomingAddress {
     @JsonKey(name: 'address_line') required String addressLine,
     String? city,
     String? district,
-    double? lat,
-    double? lng,
+    @JsonKey(fromJson: _parseDouble) double? lat,
+    @JsonKey(fromJson: _parseDouble) double? lng,
   }) = _IncomingAddress;
 
   factory IncomingAddress.fromJson(Map<String, dynamic> json) =>
@@ -60,8 +63,8 @@ class IncomingOrderDetail with _$IncomingOrderDetail {
     @JsonKey(name: 'requires_prescription')
     @Default(false)
     bool requiresPrescription,
-    @JsonKey(name: 'cod_amount') double? codAmount,
-    @JsonKey(name: 'delivery_fee') double? deliveryFee,
+    @JsonKey(name: 'cod_amount', fromJson: _parseDouble) double? codAmount,
+    @JsonKey(name: 'delivery_fee', fromJson: _parseDouble) double? deliveryFee,
     @JsonKey(name: 'payment_method') String? paymentMethod,
     IncomingDrug? drug,
     @JsonKey(name: 'patient_address') IncomingAddress? patientAddress,

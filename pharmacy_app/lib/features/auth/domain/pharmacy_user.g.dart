@@ -13,6 +13,11 @@ _$PharmacyImpl _$$PharmacyImplFromJson(Map<String, dynamic> json) =>
       phone: json['phone'] as String?,
       address: json['address'] as String?,
       city: json['city'] as String?,
+      district: json['district'] as String?,
+      lat: _parseDouble(json['lat']),
+      lng: _parseDouble(json['lng']),
+      deliveryRadiusKm: (json['delivery_radius_km'] as num?)?.toInt(),
+      hasDelivery: json['has_delivery'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$$PharmacyImplToJson(_$PharmacyImpl instance) =>
@@ -22,6 +27,11 @@ Map<String, dynamic> _$$PharmacyImplToJson(_$PharmacyImpl instance) =>
       'phone': instance.phone,
       'address': instance.address,
       'city': instance.city,
+      'district': instance.district,
+      'lat': instance.lat,
+      'lng': instance.lng,
+      'delivery_radius_km': instance.deliveryRadiusKm,
+      'has_delivery': instance.hasDelivery,
     };
 
 _$PharmacyUserImpl _$$PharmacyUserImplFromJson(Map<String, dynamic> json) =>

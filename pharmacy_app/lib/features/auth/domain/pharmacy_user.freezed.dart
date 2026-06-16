@@ -25,6 +25,15 @@ mixin _$Pharmacy {
   String? get phone => throw _privateConstructorUsedError;
   String? get address => throw _privateConstructorUsedError;
   String? get city => throw _privateConstructorUsedError;
+  String? get district => throw _privateConstructorUsedError;
+  @JsonKey(fromJson: _parseDouble)
+  double? get lat => throw _privateConstructorUsedError;
+  @JsonKey(fromJson: _parseDouble)
+  double? get lng => throw _privateConstructorUsedError;
+  @JsonKey(name: 'delivery_radius_km')
+  int? get deliveryRadiusKm => throw _privateConstructorUsedError;
+  @JsonKey(name: 'has_delivery')
+  bool get hasDelivery => throw _privateConstructorUsedError;
 
   /// Serializes this Pharmacy to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -42,7 +51,16 @@ abstract class $PharmacyCopyWith<$Res> {
       _$PharmacyCopyWithImpl<$Res, Pharmacy>;
   @useResult
   $Res call(
-      {int id, String name, String? phone, String? address, String? city});
+      {int id,
+      String name,
+      String? phone,
+      String? address,
+      String? city,
+      String? district,
+      @JsonKey(fromJson: _parseDouble) double? lat,
+      @JsonKey(fromJson: _parseDouble) double? lng,
+      @JsonKey(name: 'delivery_radius_km') int? deliveryRadiusKm,
+      @JsonKey(name: 'has_delivery') bool hasDelivery});
 }
 
 /// @nodoc
@@ -65,6 +83,11 @@ class _$PharmacyCopyWithImpl<$Res, $Val extends Pharmacy>
     Object? phone = freezed,
     Object? address = freezed,
     Object? city = freezed,
+    Object? district = freezed,
+    Object? lat = freezed,
+    Object? lng = freezed,
+    Object? deliveryRadiusKm = freezed,
+    Object? hasDelivery = null,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -87,6 +110,26 @@ class _$PharmacyCopyWithImpl<$Res, $Val extends Pharmacy>
           ? _value.city
           : city // ignore: cast_nullable_to_non_nullable
               as String?,
+      district: freezed == district
+          ? _value.district
+          : district // ignore: cast_nullable_to_non_nullable
+              as String?,
+      lat: freezed == lat
+          ? _value.lat
+          : lat // ignore: cast_nullable_to_non_nullable
+              as double?,
+      lng: freezed == lng
+          ? _value.lng
+          : lng // ignore: cast_nullable_to_non_nullable
+              as double?,
+      deliveryRadiusKm: freezed == deliveryRadiusKm
+          ? _value.deliveryRadiusKm
+          : deliveryRadiusKm // ignore: cast_nullable_to_non_nullable
+              as int?,
+      hasDelivery: null == hasDelivery
+          ? _value.hasDelivery
+          : hasDelivery // ignore: cast_nullable_to_non_nullable
+              as bool,
     ) as $Val);
   }
 }
@@ -100,7 +143,16 @@ abstract class _$$PharmacyImplCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {int id, String name, String? phone, String? address, String? city});
+      {int id,
+      String name,
+      String? phone,
+      String? address,
+      String? city,
+      String? district,
+      @JsonKey(fromJson: _parseDouble) double? lat,
+      @JsonKey(fromJson: _parseDouble) double? lng,
+      @JsonKey(name: 'delivery_radius_km') int? deliveryRadiusKm,
+      @JsonKey(name: 'has_delivery') bool hasDelivery});
 }
 
 /// @nodoc
@@ -121,6 +173,11 @@ class __$$PharmacyImplCopyWithImpl<$Res>
     Object? phone = freezed,
     Object? address = freezed,
     Object? city = freezed,
+    Object? district = freezed,
+    Object? lat = freezed,
+    Object? lng = freezed,
+    Object? deliveryRadiusKm = freezed,
+    Object? hasDelivery = null,
   }) {
     return _then(_$PharmacyImpl(
       id: null == id
@@ -143,6 +200,26 @@ class __$$PharmacyImplCopyWithImpl<$Res>
           ? _value.city
           : city // ignore: cast_nullable_to_non_nullable
               as String?,
+      district: freezed == district
+          ? _value.district
+          : district // ignore: cast_nullable_to_non_nullable
+              as String?,
+      lat: freezed == lat
+          ? _value.lat
+          : lat // ignore: cast_nullable_to_non_nullable
+              as double?,
+      lng: freezed == lng
+          ? _value.lng
+          : lng // ignore: cast_nullable_to_non_nullable
+              as double?,
+      deliveryRadiusKm: freezed == deliveryRadiusKm
+          ? _value.deliveryRadiusKm
+          : deliveryRadiusKm // ignore: cast_nullable_to_non_nullable
+              as int?,
+      hasDelivery: null == hasDelivery
+          ? _value.hasDelivery
+          : hasDelivery // ignore: cast_nullable_to_non_nullable
+              as bool,
     ));
   }
 }
@@ -155,7 +232,12 @@ class _$PharmacyImpl implements _Pharmacy {
       required this.name,
       this.phone,
       this.address,
-      this.city});
+      this.city,
+      this.district,
+      @JsonKey(fromJson: _parseDouble) this.lat,
+      @JsonKey(fromJson: _parseDouble) this.lng,
+      @JsonKey(name: 'delivery_radius_km') this.deliveryRadiusKm,
+      @JsonKey(name: 'has_delivery') this.hasDelivery = false});
 
   factory _$PharmacyImpl.fromJson(Map<String, dynamic> json) =>
       _$$PharmacyImplFromJson(json);
@@ -170,10 +252,24 @@ class _$PharmacyImpl implements _Pharmacy {
   final String? address;
   @override
   final String? city;
+  @override
+  final String? district;
+  @override
+  @JsonKey(fromJson: _parseDouble)
+  final double? lat;
+  @override
+  @JsonKey(fromJson: _parseDouble)
+  final double? lng;
+  @override
+  @JsonKey(name: 'delivery_radius_km')
+  final int? deliveryRadiusKm;
+  @override
+  @JsonKey(name: 'has_delivery')
+  final bool hasDelivery;
 
   @override
   String toString() {
-    return 'Pharmacy(id: $id, name: $name, phone: $phone, address: $address, city: $city)';
+    return 'Pharmacy(id: $id, name: $name, phone: $phone, address: $address, city: $city, district: $district, lat: $lat, lng: $lng, deliveryRadiusKm: $deliveryRadiusKm, hasDelivery: $hasDelivery)';
   }
 
   @override
@@ -185,12 +281,21 @@ class _$PharmacyImpl implements _Pharmacy {
             (identical(other.name, name) || other.name == name) &&
             (identical(other.phone, phone) || other.phone == phone) &&
             (identical(other.address, address) || other.address == address) &&
-            (identical(other.city, city) || other.city == city));
+            (identical(other.city, city) || other.city == city) &&
+            (identical(other.district, district) ||
+                other.district == district) &&
+            (identical(other.lat, lat) || other.lat == lat) &&
+            (identical(other.lng, lng) || other.lng == lng) &&
+            (identical(other.deliveryRadiusKm, deliveryRadiusKm) ||
+                other.deliveryRadiusKm == deliveryRadiusKm) &&
+            (identical(other.hasDelivery, hasDelivery) ||
+                other.hasDelivery == hasDelivery));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, id, name, phone, address, city);
+  int get hashCode => Object.hash(runtimeType, id, name, phone, address, city,
+      district, lat, lng, deliveryRadiusKm, hasDelivery);
 
   /// Create a copy of Pharmacy
   /// with the given fields replaced by the non-null parameter values.
@@ -214,7 +319,12 @@ abstract class _Pharmacy implements Pharmacy {
       required final String name,
       final String? phone,
       final String? address,
-      final String? city}) = _$PharmacyImpl;
+      final String? city,
+      final String? district,
+      @JsonKey(fromJson: _parseDouble) final double? lat,
+      @JsonKey(fromJson: _parseDouble) final double? lng,
+      @JsonKey(name: 'delivery_radius_km') final int? deliveryRadiusKm,
+      @JsonKey(name: 'has_delivery') final bool hasDelivery}) = _$PharmacyImpl;
 
   factory _Pharmacy.fromJson(Map<String, dynamic> json) =
       _$PharmacyImpl.fromJson;
@@ -229,6 +339,20 @@ abstract class _Pharmacy implements Pharmacy {
   String? get address;
   @override
   String? get city;
+  @override
+  String? get district;
+  @override
+  @JsonKey(fromJson: _parseDouble)
+  double? get lat;
+  @override
+  @JsonKey(fromJson: _parseDouble)
+  double? get lng;
+  @override
+  @JsonKey(name: 'delivery_radius_km')
+  int? get deliveryRadiusKm;
+  @override
+  @JsonKey(name: 'has_delivery')
+  bool get hasDelivery;
 
   /// Create a copy of Pharmacy
   /// with the given fields replaced by the non-null parameter values.
