@@ -85,12 +85,10 @@ class _OrderTrackingBodyState extends State<_OrderTrackingBody>
       ..repeat();
     _pulseCtrl = AnimationController(
         vsync: this,
-        duration: const Duration(milliseconds: 1500),
-        lowerBound: 1.0,
-        upperBound: 1.15)
+        duration: const Duration(milliseconds: 1500))
       ..repeat(reverse: true);
-    _pulseScale =
-        CurvedAnimation(parent: _pulseCtrl, curve: Curves.easeInOut);
+    _pulseScale = Tween<double>(begin: 1.0, end: 1.15)
+        .animate(CurvedAnimation(parent: _pulseCtrl, curve: Curves.easeInOut));
   }
 
   @override
