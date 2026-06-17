@@ -1,5 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/providers/core_providers.dart';
+import '../../../core/services/notification_service.dart';
 import '../data/auth_repository.dart';
 import '../domain/patient.dart';
 
@@ -38,10 +40,18 @@ class AuthController extends AsyncNotifier<AuthState> {
 
   void setAuthenticated(Patient patient) {
     state = AsyncData(AuthAuthenticated(patient));
+    syncPushToken();
   }
 
   void refreshPatient(Patient patient) {
     state = AsyncData(AuthAuthenticated(patient));
+  }
+
+  Future<void> syncPushToken() async {
+    try {
+      final dio = ref.read(dioProvider);
+      await NotificationService.syncToken(dio);
+    } catch (_) {}
   }
 }
 

@@ -1,7 +1,19 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'app.dart';
 
-void main() {
-  runApp(const ProviderScope(child: BelShefaaPatientApp()));
+import 'app.dart';
+import 'core/services/notification_service.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+
+  final container = ProviderContainer();
+  await NotificationService.init(container: container);
+
+  runApp(UncontrolledProviderScope(
+    container: container,
+    child: const BelShefaaPatientApp(),
+  ));
 }

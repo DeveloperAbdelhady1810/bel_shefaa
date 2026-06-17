@@ -3,10 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/auth_repository.dart';
 import '../domain/pharmacy_user.dart';
 import '../../notifications/push_service.dart';
-import '../../notifications/push_service_stub.dart';
+import '../../notifications/firebase_push_service.dart';
 
 // Registered in main.dart via ProviderScope overrides if needed.
-final pushServiceProvider = Provider<PushService>((_) => const PushServiceStub());
+final pushServiceProvider = Provider<PushService>((_) => FirebasePushService());
 
 sealed class AuthState {
   const AuthState();

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "801089826830",
+    "project_id": "quota-pharmacies",
+    "storage_bucket": "quota-pharmacies.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:801089826830:android:6784f65f27b71b3a3b0c5f",
+        "android_client_info": {
+          "package_name": "net.quadrocloud.quota"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAKue4XZFoRJ1kQ6gJg-H8BBNkf5oExhqU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
