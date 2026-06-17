@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/theme/app_theme.dart';
 import '../application/orders_controller.dart';
@@ -46,9 +47,11 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
   }
 
   Future<void> _reject() async {
-    final reason = await showDialog<String?>(
+    final reason = await showModalBottomSheet<String?>(
       context: context,
-      builder: (ctx) => _RejectDialog(),
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => _RejectBottomSheet(),
     );
     if (reason == null) return; // cancelled
 
@@ -86,49 +89,65 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
 
     return Scaffold(
       backgroundColor: kBg,
+
+      // ── Flat white AppBar (detail screen style) ──────────────────────────
       appBar: AppBar(
-        title: const Text('تفاصيل الطلب'),
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [kMedicalBlue, kMedicalBlueDark],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
+        backgroundColor: kSurface,
+        foregroundColor: kDeepNavy,
+        elevation: 0,
+        centerTitle: true,
+        title: Text(
+          'تفاصيل الطلب',
+          style: GoogleFonts.cairo(
+            color: kDeepNavy,
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
           ),
         ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded,
+              color: kDeepNavy, size: 20),
           onPressed: () => context.pop(),
+        ),
+        bottom: const PreferredSize(
+          preferredSize: Size.fromHeight(1),
+          child: Divider(height: 1, color: kDivider),
         ),
       ),
 
-      // ── Floating bottom action bar ──────────────────────────────────────────
+      // ── Floating bottom action bar ────────────────────────────────────────
       bottomNavigationBar: _isLoading
-          ? const SafeArea(
-              child: SizedBox(
-                height: 96,
-                child: Center(
-                    child: CircularProgressIndicator(color: kMedicalBlue)),
+          ? Container(
+              color: kSurface,
+              child: const SafeArea(
+                child: SizedBox(
+                  height: 88,
+                  child: Center(
+                      child: CircularProgressIndicator(color: kMedicalBlue)),
+                ),
               ),
             )
           : Container(
-              padding:
-                  const EdgeInsets.fromLTRB(20, 16, 20, 0),
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
               decoration: const BoxDecoration(
                 color: kSurface,
                 boxShadow: [
                   BoxShadow(
-                    color: kCardShadowBlue,
+                    color: kShadowBlue,
                     blurRadius: 20,
                     offset: Offset(0, -4),
+                  ),
+                  BoxShadow(
+                    color: kShadowDeep,
+                    blurRadius: 4,
+                    offset: Offset(0, -1),
                   ),
                 ],
               ),
               child: SafeArea(
                 child: Row(
                   children: [
-                    // Accept button (green gradient)
+                    // Accept button — success gradient
                     Expanded(
                       child: _TapScale(
                         onTap: _accept,
@@ -136,7 +155,7 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
                           height: 56,
                           decoration: BoxDecoration(
                             gradient: const LinearGradient(
-                              colors: [kSuccess, Color(0xFF00956A)],
+                              colors: [kSuccess, Color(0xFF059669)],
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
                             ),
@@ -154,15 +173,15 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
                             child: InkWell(
                               borderRadius: BorderRadius.circular(16),
                               onTap: _accept,
-                              child: const Row(
+                              child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Icon(Icons.check_circle_outline,
+                                  const Icon(Icons.check_circle_outline_rounded,
                                       color: Colors.white, size: 20),
-                                  SizedBox(width: 6),
+                                  const SizedBox(width: 6),
                                   Text(
                                     'قبول',
-                                    style: TextStyle(
+                                    style: GoogleFonts.cairo(
                                       color: Colors.white,
                                       fontWeight: FontWeight.w700,
                                       fontSize: 16,
@@ -177,17 +196,17 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
                     ),
                     const SizedBox(width: 12),
 
-                    // Reject button (outlined red)
+                    // Reject button — outlined red, no fill
                     Expanded(
                       child: _TapScale(
                         onTap: _reject,
                         child: Container(
                           height: 56,
                           decoration: BoxDecoration(
-                            color: kError.withValues(alpha: 0.06),
+                            color: Colors.transparent,
                             borderRadius: BorderRadius.circular(16),
                             border: Border.all(
-                                color: kError.withValues(alpha: 0.60),
+                                color: kError.withValues(alpha: 0.70),
                                 width: 1.5),
                           ),
                           child: Material(
@@ -195,15 +214,15 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
                             child: InkWell(
                               borderRadius: BorderRadius.circular(16),
                               onTap: _reject,
-                              child: const Row(
+                              child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Icon(Icons.cancel_outlined,
+                                  const Icon(Icons.cancel_outlined,
                                       color: kError, size: 20),
-                                  SizedBox(width: 6),
+                                  const SizedBox(width: 6),
                                   Text(
                                     'رفض',
-                                    style: TextStyle(
+                                    style: GoogleFonts.cairo(
                                       color: kError,
                                       fontWeight: FontWeight.w700,
                                       fontSize: 16,
@@ -226,20 +245,21 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── Drug header card ──────────────────────────────────────────────
+            // ── Hero drug card with blue left-border ──────────────────────
             Container(
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 color: kSurface,
-                borderRadius: BorderRadius.all(Radius.circular(20)),
-                boxShadow: [
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: kDivider, width: 1),
+                boxShadow: const [
                   BoxShadow(
-                      color: kCardShadowBlue,
-                      blurRadius: 24,
+                      color: kShadowBlue,
+                      blurRadius: 20,
                       offset: Offset(0, 6)),
                   BoxShadow(
-                      color: Color(0x06000000),
-                      blurRadius: 6,
-                      offset: Offset(0, 1)),
+                      color: kShadowDeep,
+                      blurRadius: 4,
+                      offset: Offset(0, 2)),
                 ],
               ),
               child: ClipRRect(
@@ -248,9 +268,9 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // Gradient left border
+                      // Blue left-border 6px
                       Container(
-                        width: 5,
+                        width: 6,
                         decoration: const BoxDecoration(
                           gradient: LinearGradient(
                             colors: [kMedicalBlue, kMedicalBlueDark],
@@ -261,57 +281,78 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
                       ),
                       Expanded(
                         child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
+                          padding: const EdgeInsets.all(18),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Container(
-                                width: 52,
-                                height: 52,
-                                decoration: BoxDecoration(
-                                  color: kMedicalBlueLight,
-                                  borderRadius: BorderRadius.circular(14),
-                                ),
-                                child: const Icon(Icons.medication,
-                                    color: kMedicalBlue, size: 28),
-                              ),
-                              const SizedBox(width: 14),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      drug?.nameAr ?? '—',
-                                      style: const TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.w800,
-                                        color: kTextPrimary,
-                                      ),
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Container(
+                                    width: 52,
+                                    height: 52,
+                                    decoration: BoxDecoration(
+                                      color: kMedicalBlueLight,
+                                      borderRadius:
+                                          BorderRadius.circular(14),
                                     ),
-                                    if (drug?.nameEn != null) ...[
-                                      const SizedBox(height: 2),
-                                      Text(
-                                        drug!.nameEn,
-                                        style: const TextStyle(
-                                            color: kTextSecondary,
-                                            fontSize: 13),
-                                      ),
-                                    ],
-                                    if (drug?.form != null ||
-                                        drug?.strength != null) ...[
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        [drug?.form, drug?.strength]
-                                            .whereType<String>()
-                                            .join(' — '),
-                                        style: const TextStyle(
-                                            color: kTextSecondary,
-                                            fontSize: 12),
-                                      ),
-                                    ],
-                                  ],
-                                ),
+                                    child: const Icon(
+                                        Icons.medication_rounded,
+                                        color: kMedicalBlue,
+                                        size: 28),
+                                  ),
+                                  const SizedBox(width: 14),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          drug?.nameAr ?? '—',
+                                          style: GoogleFonts.cairo(
+                                            fontSize: 22,
+                                            fontWeight: FontWeight.w800,
+                                            color: kTextPrimary,
+                                          ),
+                                        ),
+                                        if (drug?.nameEn != null) ...[
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            drug!.nameEn,
+                                            style: GoogleFonts.notoKufiArabic(
+                                                color: kTextSecondary,
+                                                fontSize: 13),
+                                          ),
+                                        ],
+                                        if (drug?.form != null ||
+                                            drug?.strength != null) ...[
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            [drug?.form, drug?.strength]
+                                                .whereType<String>()
+                                                .join(' — '),
+                                            style: GoogleFonts.notoKufiArabic(
+                                                color: kTextSecondary,
+                                                fontSize: 12),
+                                          ),
+                                        ],
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 14),
+                              // Quantity amber pill + prescription warning
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 6,
+                                children: [
+                                  _AmberPill(
+                                      label:
+                                          'الكمية: ${order?.quantity ?? '—'}'),
+                                  if (order?.requiresPrescription == true)
+                                    const _WarningPill(label: 'يتطلب روشتة طبية'),
+                                ],
                               ),
                             ],
                           ),
@@ -325,14 +366,16 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
 
             const SizedBox(height: 16),
 
-            // ── Info sections ─────────────────────────────────────────────────
+            // ── Drug details section ──────────────────────────────────────
             _section(
               icon: Icons.medication_outlined,
               title: 'تفاصيل الدواء',
               children: [
-                _row('الكمية', '${order?.quantity ?? '—'}'),
-                if (order?.requiresPrescription == true)
+                _row('الكمية المطلوبة', '${order?.quantity ?? '—'}'),
+                if (order?.requiresPrescription == true) ...[
+                  const SizedBox(height: 8),
                   _badge('يتطلب روشتة طبية', kWarning),
+                ],
               ],
             ),
 
@@ -352,7 +395,7 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
             const SizedBox(height: 14),
 
             _section(
-              icon: Icons.person_outline,
+              icon: Icons.person_outline_rounded,
               title: 'المريض',
               children: [
                 _row('الاسم', patient?.name ?? '—'),
@@ -363,7 +406,7 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
 
             const SizedBox(height: 14),
 
-            // Payment section with highlighted amount
+            // Payment section
             _paymentSection(order),
 
             if (order?.notes != null) ...[
@@ -374,7 +417,7 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
                 children: [
                   Text(
                     order!.notes!,
-                    style: const TextStyle(
+                    style: GoogleFonts.notoKufiArabic(
                         color: kTextSecondary, fontSize: 14),
                   ),
                 ],
@@ -395,18 +438,19 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
     required List<Widget> children,
   }) {
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: kSurface,
-        borderRadius: BorderRadius.all(Radius.circular(20)),
-        boxShadow: [
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: kDivider, width: 1),
+        boxShadow: const [
           BoxShadow(
-              color: kCardShadowBlue,
-              blurRadius: 24,
+              color: kShadowBlue,
+              blurRadius: 20,
               offset: Offset(0, 6)),
           BoxShadow(
-              color: Color(0x06000000),
-              blurRadius: 6,
-              offset: Offset(0, 1)),
+              color: kShadowDeep,
+              blurRadius: 4,
+              offset: Offset(0, 2)),
         ],
       ),
       child: Padding(
@@ -414,6 +458,7 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Section header
             Row(children: [
               Container(
                 padding: const EdgeInsets.all(6),
@@ -425,15 +470,17 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
               ),
               const SizedBox(width: 10),
               Text(
-                title,
-                style: const TextStyle(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 15,
-                    color: kTextPrimary),
+                title.toUpperCase(),
+                style: GoogleFonts.cairo(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 13,
+                  color: kMedicalBlue,
+                  letterSpacing: 0.5,
+                ),
               ),
             ]),
-            const SizedBox(height: 12),
-            Container(height: 1, color: kBg),
+            const SizedBox(height: 10),
+            const Divider(height: 1, color: kDivider),
             const SizedBox(height: 12),
             ...children,
           ],
@@ -444,18 +491,19 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
 
   Widget _paymentSection(dynamic order) {
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: kSurface,
-        borderRadius: BorderRadius.all(Radius.circular(20)),
-        boxShadow: [
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: kDivider, width: 1),
+        boxShadow: const [
           BoxShadow(
-              color: kCardShadowBlue,
-              blurRadius: 24,
+              color: kShadowBlue,
+              blurRadius: 20,
               offset: Offset(0, 6)),
           BoxShadow(
-              color: Color(0x06000000),
-              blurRadius: 6,
-              offset: Offset(0, 1)),
+              color: kShadowDeep,
+              blurRadius: 4,
+              offset: Offset(0, 2)),
         ],
       ),
       child: Padding(
@@ -474,16 +522,18 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
                     size: 16, color: kMedicalBlue),
               ),
               const SizedBox(width: 10),
-              const Text(
-                'الدفع',
-                style: TextStyle(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 15,
-                    color: kTextPrimary),
+              Text(
+                'الدفع'.toUpperCase(),
+                style: GoogleFonts.cairo(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 13,
+                  color: kMedicalBlue,
+                  letterSpacing: 0.5,
+                ),
               ),
             ]),
-            const SizedBox(height: 12),
-            Container(height: 1, color: kBg),
+            const SizedBox(height: 10),
+            const Divider(height: 1, color: kDivider),
             const SizedBox(height: 12),
             _row(
               'طريقة الدفع',
@@ -496,7 +546,7 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
                 padding: const EdgeInsets.symmetric(
                     horizontal: 16, vertical: 12),
                 decoration: BoxDecoration(
-                  color: kSuccess.withValues(alpha: 0.08),
+                  color: kSuccessLight,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
                       color: kSuccess.withValues(alpha: 0.30)),
@@ -506,15 +556,15 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
                     const Icon(Icons.monetization_on_outlined,
                         color: kSuccess, size: 20),
                     const SizedBox(width: 8),
-                    const Text(
+                    Text(
                       'المبلغ عند الاستلام',
-                      style: TextStyle(
+                      style: GoogleFonts.notoKufiArabic(
                           color: kTextSecondary, fontSize: 13),
                     ),
                     const Spacer(),
                     Text(
                       '${order!.codAmount!.toStringAsFixed(2)} ج.م',
-                      style: const TextStyle(
+                      style: GoogleFonts.cairo(
                         color: kSuccess,
                         fontWeight: FontWeight.w800,
                         fontSize: 17,
@@ -539,23 +589,26 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
 
   Widget _row(String label, String value) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: 5),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
             width: 120,
-            child: Text(label,
-                style: const TextStyle(
-                    color: kTextSecondary, fontSize: 13)),
+            child: Text(
+              label,
+              style: GoogleFonts.notoKufiArabic(
+                  color: kTextSecondary, fontSize: 13),
+            ),
           ),
           Expanded(
             child: Text(
               value,
-              style: const TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 14,
-                  color: kTextPrimary),
+              style: GoogleFonts.notoKufiArabic(
+                fontWeight: FontWeight.w600,
+                fontSize: 14,
+                color: kTextPrimary,
+              ),
             ),
           ),
         ],
@@ -565,7 +618,7 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
 
   Widget _badge(String text, Color color) {
     return Container(
-      margin: const EdgeInsets.only(top: 8),
+      margin: const EdgeInsets.only(top: 4),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.10),
@@ -575,53 +628,198 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.receipt_long, size: 14, color: color),
+          Icon(Icons.receipt_long_rounded, size: 14, color: color),
           const SizedBox(width: 6),
-          Text(text,
-              style: TextStyle(
-                  color: color,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 13)),
+          Text(
+            text,
+            style: GoogleFonts.notoKufiArabic(
+              color: color,
+              fontWeight: FontWeight.w700,
+              fontSize: 13,
+            ),
+          ),
         ],
       ),
     );
   }
 }
 
-// ── Reject dialog ──────────────────────────────────────────────────────────────
-class _RejectDialog extends StatelessWidget {
-  _RejectDialog();
+// ── Amber pill badge ───────────────────────────────────────────────────────────
+class _AmberPill extends StatelessWidget {
+  const _AmberPill({required this.label});
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+      decoration: BoxDecoration(
+        color: kAmberLight,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: kAmber.withValues(alpha: 0.40)),
+      ),
+      child: Text(
+        label,
+        style: GoogleFonts.cairo(
+          color: kAmber,
+          fontWeight: FontWeight.w700,
+          fontSize: 13,
+        ),
+      ),
+    );
+  }
+}
+
+// ── Warning pill badge ────────────────────────────────────────────────────────
+class _WarningPill extends StatelessWidget {
+  const _WarningPill({required this.label});
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+      decoration: BoxDecoration(
+        color: kWarningLight,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: kWarning.withValues(alpha: 0.40)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.receipt_long_rounded, size: 13, color: kWarning),
+          const SizedBox(width: 5),
+          Text(
+            label,
+            style: GoogleFonts.cairo(
+              color: kWarning,
+              fontWeight: FontWeight.w700,
+              fontSize: 13,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Reject bottom sheet ────────────────────────────────────────────────────────
+class _RejectBottomSheet extends StatelessWidget {
+  _RejectBottomSheet();
 
   final _ctrl = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      shape:
-          RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      title: const Text('سبب الرفض',
-          style: TextStyle(fontWeight: FontWeight.w700)),
-      content: TextField(
-        controller: _ctrl,
-        decoration: const InputDecoration(
-            hintText: 'اختياري — اذكر السبب إن أردت'),
-        maxLines: 3,
+    return Container(
+      decoration: const BoxDecoration(
+        color: kSurface,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      actions: [
-        TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('إلغاء',
-                style: TextStyle(color: kTextSecondary))),
-        ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: kError,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
+      padding: EdgeInsets.fromLTRB(
+        24,
+        20,
+        24,
+        MediaQuery.of(context).viewInsets.bottom + 24,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Drag handle
+          Container(
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: kDivider,
+              borderRadius: BorderRadius.circular(2),
             ),
-            onPressed: () => Navigator.pop(context, _ctrl.text),
-            child: const Text('تأكيد الرفض')),
-      ],
+          ),
+          const SizedBox(height: 20),
+
+          Text(
+            'سبب الرفض',
+            style: GoogleFonts.cairo(
+              fontWeight: FontWeight.w700,
+              fontSize: 18,
+              color: kTextPrimary,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'اختياري — اذكر السبب إن أردت',
+            style: GoogleFonts.notoKufiArabic(
+              color: kTextSecondary,
+              fontSize: 13,
+            ),
+          ),
+          const SizedBox(height: 20),
+
+          TextField(
+            controller: _ctrl,
+            maxLines: 3,
+            style: GoogleFonts.notoKufiArabic(
+                fontSize: 14, color: kTextPrimary),
+            decoration: const InputDecoration(
+              hintText: 'مثال: الكمية غير كافية',
+            ),
+          ),
+          const SizedBox(height: 20),
+
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: kTextSecondary,
+                    side: const BorderSide(color: kDivider),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14)),
+                    minimumSize: const Size.fromHeight(52),
+                  ),
+                  onPressed: () => Navigator.pop(context),
+                  child: Text(
+                    'إلغاء',
+                    style: GoogleFonts.cairo(
+                        fontWeight: FontWeight.w600, fontSize: 15),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _TapScale(
+                  onTap: () => Navigator.pop(context, _ctrl.text),
+                  child: Container(
+                    height: 52,
+                    decoration: BoxDecoration(
+                      color: kErrorLight,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                          color: kError.withValues(alpha: 0.50)),
+                    ),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(14),
+                        onTap: () => Navigator.pop(context, _ctrl.text),
+                        child: Center(
+                          child: Text(
+                            'تأكيد الرفض',
+                            style: GoogleFonts.cairo(
+                              color: kError,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 15,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }
@@ -639,7 +837,7 @@ class _TapScale extends StatefulWidget {
 class _TapScaleState extends State<_TapScale>
     with SingleTickerProviderStateMixin {
   late final AnimationController _ctrl = AnimationController(
-      vsync: this, duration: const Duration(milliseconds: 90));
+      vsync: this, duration: const Duration(milliseconds: 80));
   late final Animation<double> _scale = Tween(begin: 1.0, end: 0.96).animate(
       CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut));
 

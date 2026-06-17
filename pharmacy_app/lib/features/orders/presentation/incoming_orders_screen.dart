@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/theme/app_theme.dart';
 import '../../auth/application/auth_controller.dart';
@@ -26,24 +27,54 @@ class IncomingOrdersScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: kBg,
       appBar: AppBar(
-        title: Text(pharmacyName),
+        title: Text(
+          pharmacyName,
+          style: GoogleFonts.cairo(
+            color: Colors.white,
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
         flexibleSpace: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: [kMedicalBlue, kMedicalBlueDark],
+              colors: [kMedicalBlueDark, kMedicalBlue],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
           ),
         ),
         actions: [
+          // Order count badge
+          ordersAsync.whenOrNull(
+            data: (orders) => orders.isNotEmpty
+                ? Container(
+                    margin: const EdgeInsets.symmetric(vertical: 14),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: kAmber,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      '${orders.length}',
+                      style: GoogleFonts.cairo(
+                        color: Colors.white,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  )
+                : null,
+          ) ?? const SizedBox.shrink(),
+          const SizedBox(width: 4),
           IconButton(
             icon: const Icon(Icons.inventory_2_outlined, color: Colors.white),
             tooltip: 'تعديل المخزون',
             onPressed: () => context.push('/stock'),
           ),
           IconButton(
-            icon: const Icon(Icons.logout, color: Colors.white),
+            icon: const Icon(Icons.logout_rounded, color: Colors.white),
             tooltip: 'تسجيل الخروج',
             onPressed: () async {
               await ref.read(authControllerProvider.notifier).logout();
@@ -65,15 +96,59 @@ class IncomingOrdersScreen extends ConsumerWidget {
           ),
           data: (orders) {
             if (orders.isEmpty) return const _EmptyState();
-            return ListView.separated(
-              padding: const EdgeInsets.fromLTRB(16, 20, 16, 24),
-              itemCount: orders.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 14),
-              itemBuilder: (context, i) => _OrderCard(order: orders[i]),
-            );
+            return _StaggeredOrderList(orders: orders);
           },
         ),
       ),
+    );
+  }
+}
+
+// ── Staggered order list ───────────────────────────────────────────────────────
+class _StaggeredOrderList extends StatefulWidget {
+  const _StaggeredOrderList({required this.orders});
+  final List<IncomingOrder> orders;
+
+  @override
+  State<_StaggeredOrderList> createState() => _StaggeredOrderListState();
+}
+
+class _StaggeredOrderListState extends State<_StaggeredOrderList> {
+  bool _visible = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) setState(() => _visible = true);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.separated(
+      padding: const EdgeInsets.fromLTRB(16, 20, 16, 24),
+      itemCount: widget.orders.length,
+      separatorBuilder: (_, __) => const SizedBox(height: 14),
+      itemBuilder: (context, i) {
+        final delay = Duration(milliseconds: i * 80);
+        return AnimatedSlide(
+          offset: _visible ? Offset.zero : const Offset(0, 0.12),
+          duration: Duration(milliseconds: 350 + i * 40),
+          curve: Curves.easeOutCubic,
+          child: AnimatedOpacity(
+            opacity: _visible ? 1.0 : 0.0,
+            duration: Duration(milliseconds: 300 + i * 40),
+            curve: Curves.easeOut,
+            child: FutureBuilder(
+              future: Future.delayed(delay),
+              builder: (context, snapshot) {
+                return _OrderCard(order: widget.orders[i]);
+              },
+            ),
+          ),
+        );
+      },
     );
   }
 }
@@ -89,28 +164,31 @@ class _EmptyState extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            width: 96,
-            height: 96,
+            width: 120,
+            height: 120,
             decoration: const BoxDecoration(
               color: kMedicalBlueLight,
               shape: BoxShape.circle,
             ),
             child: const Icon(Icons.inbox_outlined,
-                size: 48, color: kMedicalBlue),
+                size: 56, color: kMedicalBlue),
           ),
-          const SizedBox(height: 20),
-          const Text(
+          const SizedBox(height: 24),
+          Text(
             'لا توجد طلبات واردة',
-            style: TextStyle(
-              fontSize: 18,
+            style: GoogleFonts.cairo(
+              fontSize: 20,
               fontWeight: FontWeight.w700,
               color: kTextPrimary,
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             'اسحب للأسفل للتحديث',
-            style: TextStyle(color: kTextSecondary, fontSize: 14),
+            style: GoogleFonts.notoKufiArabic(
+              color: kTextSecondary,
+              fontSize: 14,
+            ),
           ),
         ],
       ),
@@ -135,19 +213,19 @@ class _ErrorState extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: kError.withValues(alpha: 0.08),
+                color: kErrorLight,
                 borderRadius: BorderRadius.circular(20),
-                border:
-                    Border.all(color: kError.withValues(alpha: 0.30)),
+                border: Border.all(color: kError.withValues(alpha: 0.30)),
               ),
               child: Column(
                 children: [
-                  const Icon(Icons.wifi_off, size: 48, color: kError),
+                  const Icon(Icons.wifi_off_rounded, size: 48, color: kError),
                   const SizedBox(height: 12),
                   Text(
                     message,
                     textAlign: TextAlign.center,
-                    style: const TextStyle(color: kTextSecondary),
+                    style: GoogleFonts.notoKufiArabic(
+                        color: kTextSecondary, fontSize: 14),
                   ),
                 ],
               ),
@@ -155,7 +233,7 @@ class _ErrorState extends StatelessWidget {
             const SizedBox(height: 20),
             _GradientButton(
               label: 'إعادة المحاولة',
-              icon: Icons.refresh,
+              icon: Icons.refresh_rounded,
               onTap: onRetry,
             ),
           ],
@@ -210,12 +288,20 @@ class _OrderCardState extends State<_OrderCard> {
     return '$m:$s';
   }
 
+  /// Countdown badge: amber bg when < 60s, red bg when <= 30s, green otherwise
+  Color get _countdownBg {
+    if (_remaining.inSeconds <= 30) return kErrorLight;
+    if (_remaining.inSeconds <= 60) return kAmberLight;
+    return kSuccessLight;
+  }
+
   Color get _countdownColor {
     if (_remaining.inSeconds <= 30) return kError;
-    if (_remaining.inSeconds <= 60) return kWarning;
+    if (_remaining.inSeconds <= 60) return kAmber;
     return kSuccess;
   }
 
+  /// Left accent bar color mirrors countdown
   Color get _accentColor => _countdownColor;
 
   @override
@@ -227,18 +313,19 @@ class _OrderCardState extends State<_OrderCard> {
     return _TapScale(
       onTap: () => context.push('/orders/detail', extra: widget.order),
       child: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           color: kSurface,
-          borderRadius: BorderRadius.all(Radius.circular(20)),
-          boxShadow: [
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: kDivider, width: 1),
+          boxShadow: const [
             BoxShadow(
-                color: kCardShadowBlue,
-                blurRadius: 24,
+                color: kShadowBlue,
+                blurRadius: 20,
                 offset: Offset(0, 6)),
             BoxShadow(
-                color: Color(0x06000000),
-                blurRadius: 6,
-                offset: Offset(0, 1)),
+                color: kShadowDeep,
+                blurRadius: 4,
+                offset: Offset(0, 2)),
           ],
         ),
         child: ClipRRect(
@@ -247,7 +334,7 @@ class _OrderCardState extends State<_OrderCard> {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Left accent bar
+                // Left accent bar (4px rounded)
                 Container(
                   width: 4,
                   decoration: BoxDecoration(
@@ -276,24 +363,25 @@ class _OrderCardState extends State<_OrderCard> {
                             Expanded(
                               child: Text(
                                 drug?.nameAr ?? '—',
-                                style: const TextStyle(
-                                  fontSize: 17,
+                                style: GoogleFonts.cairo(
+                                  fontSize: 16,
                                   fontWeight: FontWeight.w700,
                                   color: kTextPrimary,
                                 ),
                               ),
                             ),
                             const SizedBox(width: 8),
+                            // Countdown badge — amber when < 60s
                             Container(
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 10, vertical: 5),
                               decoration: BoxDecoration(
-                                color: _countdownColor.withValues(alpha: 0.12),
+                                color: _countdownBg,
                                 borderRadius: BorderRadius.circular(10),
                               ),
                               child: Text(
                                 _countdownText,
-                                style: TextStyle(
+                                style: GoogleFonts.cairo(
                                   color: _countdownColor,
                                   fontWeight: FontWeight.w700,
                                   fontSize: 13,
@@ -310,7 +398,7 @@ class _OrderCardState extends State<_OrderCard> {
                             [drug?.form, drug?.strength]
                                 .whereType<String>()
                                 .join(' — '),
-                            style: const TextStyle(
+                            style: GoogleFonts.notoKufiArabic(
                                 color: kTextSecondary, fontSize: 13),
                           ),
                         ],
@@ -325,20 +413,20 @@ class _OrderCardState extends State<_OrderCard> {
                             const SizedBox(width: 4),
                             Text(
                               'الكمية: ${order?.quantity ?? '—'}',
-                              style: const TextStyle(
+                              style: GoogleFonts.notoKufiArabic(
                                   fontSize: 13, color: kTextSecondary),
                             ),
                             const SizedBox(width: 16),
 
                             // Prescription badge
                             if (order?.requiresPrescription == true) ...[
-                              const Icon(Icons.receipt_long,
-                                  size: 15, color: kWarning),
+                              const Icon(Icons.receipt_long_rounded,
+                                  size: 15, color: kAmber),
                               const SizedBox(width: 4),
-                              const Text(
+                              Text(
                                 'يتطلب روشتة',
-                                style: TextStyle(
-                                    color: kWarning,
+                                style: GoogleFonts.notoKufiArabic(
+                                    color: kAmber,
                                     fontSize: 13,
                                     fontWeight: FontWeight.w600),
                               ),
@@ -346,7 +434,7 @@ class _OrderCardState extends State<_OrderCard> {
                           ],
                         ),
 
-                        // Address row
+                        // Address + distance chip
                         if (address != null) ...[
                           const SizedBox(height: 6),
                           Row(
@@ -359,7 +447,7 @@ class _OrderCardState extends State<_OrderCard> {
                                   [address.district, address.city]
                                       .whereType<String>()
                                       .join('، '),
-                                  style: const TextStyle(
+                                  style: GoogleFonts.notoKufiArabic(
                                       fontSize: 13, color: kTextSecondary),
                                   overflow: TextOverflow.ellipsis,
                                 ),
@@ -376,7 +464,7 @@ class _OrderCardState extends State<_OrderCard> {
                           children: [
                             Text(
                               'اضغط لعرض التفاصيل',
-                              style: TextStyle(
+                              style: GoogleFonts.notoKufiArabic(
                                   color: kTextSecondary.withValues(alpha: 0.7),
                                   fontSize: 11),
                             ),
@@ -444,7 +532,7 @@ class _GradientButton extends StatelessWidget {
                 ],
                 Text(
                   label,
-                  style: const TextStyle(
+                  style: GoogleFonts.cairo(
                     color: Colors.white,
                     fontWeight: FontWeight.w700,
                     fontSize: 16,
@@ -472,7 +560,7 @@ class _TapScale extends StatefulWidget {
 class _TapScaleState extends State<_TapScale>
     with SingleTickerProviderStateMixin {
   late final AnimationController _ctrl = AnimationController(
-      vsync: this, duration: const Duration(milliseconds: 90));
+      vsync: this, duration: const Duration(milliseconds: 80));
   late final Animation<double> _scale = Tween(begin: 1.0, end: 0.96).animate(
       CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut));
 

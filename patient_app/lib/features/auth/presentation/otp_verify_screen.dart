@@ -1,6 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/theme/app_theme.dart';
 import '../application/auth_controller.dart';
@@ -20,13 +24,39 @@ class _OtpVerifyScreenState extends ConsumerState<OtpVerifyScreen> {
   final _phoneCtrl = TextEditingController();
   bool _loading = false;
   String? _error;
-  bool _needsProfile = false; // set true after first call reveals new user
+  bool _needsProfile = false;
+
+  // Resend countdown
+  int _resendSeconds = 60;
+  Timer? _resendTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _startResendTimer();
+  }
+
+  void _startResendTimer() {
+    _resendSeconds = 60;
+    _resendTimer?.cancel();
+    _resendTimer = Timer.periodic(const Duration(seconds: 1), (t) {
+      if (!mounted) { t.cancel(); return; }
+      setState(() {
+        if (_resendSeconds > 0) {
+          _resendSeconds--;
+        } else {
+          t.cancel();
+        }
+      });
+    });
+  }
 
   @override
   void dispose() {
     _codeCtrl.dispose();
     _nameCtrl.dispose();
     _phoneCtrl.dispose();
+    _resendTimer?.cancel();
     super.dispose();
   }
 
@@ -36,10 +66,7 @@ class _OtpVerifyScreenState extends ConsumerState<OtpVerifyScreen> {
       setState(() => _error = 'يرجى إدخال رمز التحقق كاملاً');
       return;
     }
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
+    setState(() { _loading = true; _error = null; });
     try {
       final result = await ref.read(authRepositoryProvider).verifyOtp(
             email: widget.email,
@@ -49,17 +76,12 @@ class _OtpVerifyScreenState extends ConsumerState<OtpVerifyScreen> {
           );
 
       if (result.isNew && !_needsProfile) {
-        // First-time user — ask for name + phone then re-submit with same code.
-        setState(() {
-          _needsProfile = true;
-          _loading = false;
-        });
+        setState(() { _needsProfile = true; _loading = false; });
         return;
       }
 
       ref.read(authControllerProvider.notifier).setAuthenticated(result.patient!);
       if (!mounted) return;
-      // If new user with no address yet → go to onboarding address screen
       if (result.patient!.addresses.isEmpty) {
         context.go('/onboarding-address');
       } else {
@@ -72,15 +94,28 @@ class _OtpVerifyScreenState extends ConsumerState<OtpVerifyScreen> {
     }
   }
 
+  Future<void> _resend() async {
+    if (_resendSeconds > 0) return;
+    try {
+      await ref.read(authRepositoryProvider).requestOtp(widget.email);
+      _startResendTimer();
+    } catch (_) {}
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: kBg,
       appBar: AppBar(
-        title: const Text('التحقق من البريد الإلكتروني'),
+        title: Text(
+          'التحقق من البريد الإلكتروني',
+          style: GoogleFonts.cairo(
+              color: Colors.white, fontSize: 17, fontWeight: FontWeight.w700),
+        ),
         backgroundColor: kMedicalBlue,
         foregroundColor: Colors.white,
+        systemOverlayStyle: SystemUiOverlayStyle.light,
       ),
-      backgroundColor: kBg,
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
@@ -91,34 +126,30 @@ class _OtpVerifyScreenState extends ConsumerState<OtpVerifyScreen> {
             // ── Email display card ──────────────────────────────────
             Container(
               padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: kSurface,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: const [
-                  BoxShadow(
-                      color: kCardShadowBlue,
-                      blurRadius: 24,
-                      offset: Offset(0, 6)),
-                  BoxShadow(
-                      color: Color(0x06000000),
-                      blurRadius: 6,
-                      offset: Offset(0, 1)),
-                ],
-              ),
+              decoration: kCardDecoration(),
               child: Column(
                 children: [
-                  const Icon(Icons.mark_email_read_outlined,
-                      color: kMedicalBlue, size: 40),
-                  const SizedBox(height: 10),
-                  const Text(
+                  Container(
+                    width: 60,
+                    height: 60,
+                    decoration: BoxDecoration(
+                      color: kMedicalBlueLight,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.mark_email_read_outlined,
+                        color: kMedicalBlue, size: 30),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
                     'أرسلنا رمز إلى',
-                    style: TextStyle(color: kTextSecondary, fontSize: 14),
+                    style: GoogleFonts.notoKufiArabic(
+                        color: kTextSecondary, fontSize: 14),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 4),
                   Text(
                     widget.email,
-                    style: const TextStyle(
+                    style: GoogleFonts.notoKufiArabic(
                       color: kMedicalBlue,
                       fontWeight: FontWeight.w700,
                       fontSize: 15,
@@ -132,41 +163,84 @@ class _OtpVerifyScreenState extends ConsumerState<OtpVerifyScreen> {
             const SizedBox(height: 24),
 
             // ── OTP input ───────────────────────────────────────────
-            TextField(
-              controller: _codeCtrl,
-              keyboardType: TextInputType.number,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                  fontSize: 32,
-                  letterSpacing: 10,
-                  fontWeight: FontWeight.w700,
-                  color: kTextPrimary),
-              maxLength: 6,
-              decoration: InputDecoration(
-                hintText: '000000',
-                hintStyle: TextStyle(
-                  letterSpacing: 10,
-                  color: kTextSecondary.withValues(alpha: 0.5),
-                  fontSize: 32,
-                ),
-                filled: true,
-                fillColor: kBg,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  borderSide: BorderSide.none,
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  borderSide: const BorderSide(color: kMedicalBlue, width: 2),
-                ),
-                contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 18, vertical: 20),
-                counterText: '',
+            Container(
+              decoration: BoxDecoration(
+                color: kBg,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: kDivider),
               ),
+              child: TextField(
+                controller: _codeCtrl,
+                keyboardType: TextInputType.number,
+                textAlign: TextAlign.center,
+                style: GoogleFonts.cairo(
+                  fontSize: 32,
+                  letterSpacing: 12,
+                  fontWeight: FontWeight.w800,
+                  color: kMedicalBlue,
+                ),
+                maxLength: 6,
+                onChanged: (_) => setState(() {}),
+                decoration: InputDecoration(
+                  hintText: '• • • • • •',
+                  hintStyle: GoogleFonts.cairo(
+                    letterSpacing: 12,
+                    color: kTextSecondary.withValues(alpha: 0.4),
+                    fontSize: 28,
+                  ),
+                  filled: true,
+                  fillColor: kBg,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide.none,
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide.none,
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide:
+                        const BorderSide(color: kMedicalBlue, width: 2),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 18, vertical: 20),
+                  counterText: '',
+                ),
+              ),
+            ),
+
+            // ── Resend code ─────────────────────────────────────────
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'لم تصلك الرسالة؟  ',
+                  style: GoogleFonts.notoKufiArabic(
+                      color: kTextSecondary, fontSize: 13),
+                ),
+                _resendSeconds > 0
+                    ? Text(
+                        'إعادة الإرسال (${_resendSeconds}s)',
+                        style: GoogleFonts.cairo(
+                            color: kTextSecondary,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600),
+                      )
+                    : GestureDetector(
+                        onTap: _resend,
+                        child: Text(
+                          'إعادة الإرسال',
+                          style: GoogleFonts.cairo(
+                            color: kMedicalBlue,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            decoration: TextDecoration.underline,
+                          ),
+                        ),
+                      ),
+              ],
             ),
 
             // ── Profile fields (animated in for new users) ──────────
@@ -178,6 +252,7 @@ class _OtpVerifyScreenState extends ConsumerState<OtpVerifyScreen> {
               ),
               child: _needsProfile
                   ? _ProfileCard(
+                      key: const ValueKey('profile-card'),
                       nameCtrl: _nameCtrl,
                       phoneCtrl: _phoneCtrl,
                     )
@@ -191,10 +266,9 @@ class _OtpVerifyScreenState extends ConsumerState<OtpVerifyScreen> {
                 padding: const EdgeInsets.symmetric(
                     horizontal: 16, vertical: 12),
                 decoration: BoxDecoration(
-                  color: kError.withValues(alpha: 0.08),
+                  color: kErrorLight,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                      color: kError.withValues(alpha: 0.25)),
+                  border: Border.all(color: kError.withValues(alpha: 0.25)),
                 ),
                 child: Row(
                   children: [
@@ -202,7 +276,7 @@ class _OtpVerifyScreenState extends ConsumerState<OtpVerifyScreen> {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(_error!,
-                          style: const TextStyle(
+                          style: GoogleFonts.notoKufiArabic(
                               color: kError, fontSize: 13)),
                     ),
                   ],
@@ -230,36 +304,26 @@ class _OtpVerifyScreenState extends ConsumerState<OtpVerifyScreen> {
 // ─── Profile Card (new user) ──────────────────────────────────────────────────
 
 class _ProfileCard extends StatelessWidget {
-  const _ProfileCard({required this.nameCtrl, required this.phoneCtrl});
+  const _ProfileCard({
+    super.key,
+    required this.nameCtrl,
+    required this.phoneCtrl,
+  });
   final TextEditingController nameCtrl;
   final TextEditingController phoneCtrl;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      key: const ValueKey('profile-card'),
       margin: const EdgeInsets.only(top: 20),
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: kSurface,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: const [
-          BoxShadow(
-              color: kCardShadowBlue,
-              blurRadius: 24,
-              offset: Offset(0, 6)),
-          BoxShadow(
-              color: Color(0x06000000),
-              blurRadius: 6,
-              offset: Offset(0, 1)),
-        ],
-      ),
+      decoration: kCardDecoration(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text(
+          Text(
             'مرحباً! أكمل بياناتك',
-            style: TextStyle(
+            style: GoogleFonts.cairo(
               color: kTextPrimary,
               fontWeight: FontWeight.w700,
               fontSize: 16,
@@ -281,14 +345,14 @@ class _ProfileCard extends StatelessWidget {
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(14),
-                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                borderSide: const BorderSide(color: kDivider),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(14),
                 borderSide: const BorderSide(color: kMedicalBlue, width: 2),
               ),
-              contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 18, vertical: 16),
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
             ),
           ),
           const SizedBox(height: 12),
@@ -308,14 +372,14 @@ class _ProfileCard extends StatelessWidget {
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(14),
-                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                borderSide: const BorderSide(color: kDivider),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(14),
                 borderSide: const BorderSide(color: kMedicalBlue, width: 2),
               ),
-              contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 18, vertical: 16),
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
             ),
           ),
         ],
@@ -349,7 +413,7 @@ class _GradientButton extends StatefulWidget {
 class _GradientButtonState extends State<_GradientButton>
     with SingleTickerProviderStateMixin {
   late final AnimationController _ctrl = AnimationController(
-      vsync: this, duration: const Duration(milliseconds: 90));
+      vsync: this, duration: const Duration(milliseconds: 80));
   late final Animation<double> _scale =
       Tween(begin: 1.0, end: 0.96).animate(
           CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut));
@@ -364,9 +428,7 @@ class _GradientButtonState extends State<_GradientButton>
   Widget build(BuildContext context) => ScaleTransition(
         scale: _scale,
         child: GestureDetector(
-          onTapDown: (_) {
-            if (!widget.loading) _ctrl.forward();
-          },
+          onTapDown: (_) { if (!widget.loading) _ctrl.forward(); },
           onTapUp: (_) {
             _ctrl.reverse();
             if (!widget.loading) widget.onPressed();
@@ -392,8 +454,7 @@ class _GradientButtonState extends State<_GradientButton>
             child: Center(
               child: widget.loading
                   ? const SizedBox(
-                      width: 22,
-                      height: 22,
+                      width: 22, height: 22,
                       child: CircularProgressIndicator(
                           color: Colors.white, strokeWidth: 2.5),
                     )
@@ -406,7 +467,7 @@ class _GradientButtonState extends State<_GradientButton>
                         ],
                         Text(
                           widget.label,
-                          style: const TextStyle(
+                          style: GoogleFonts.cairo(
                             color: Colors.white,
                             fontWeight: FontWeight.w700,
                             fontSize: 16,

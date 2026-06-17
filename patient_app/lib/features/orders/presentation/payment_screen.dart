@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 import '../../../core/theme/app_theme.dart';
@@ -14,15 +16,27 @@ class PaymentScreen extends ConsumerStatefulWidget {
   ConsumerState<PaymentScreen> createState() => _PaymentScreenState();
 }
 
-class _PaymentScreenState extends ConsumerState<PaymentScreen> {
+class _PaymentScreenState extends ConsumerState<PaymentScreen>
+    with SingleTickerProviderStateMixin {
   WebViewController? _webController;
   bool _loading = true;
   String? _error;
+
+  // Shimmer for loading state
+  late final AnimationController _shimmerCtrl = AnimationController(
+      vsync: this, duration: const Duration(milliseconds: 1400))
+    ..repeat();
 
   @override
   void initState() {
     super.initState();
     _fetchPaymentUrl();
+  }
+
+  @override
+  void dispose() {
+    _shimmerCtrl.dispose();
+    super.dispose();
   }
 
   Future<void> _fetchPaymentUrl() async {
@@ -48,7 +62,6 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
           onPageStarted: (_) => setState(() => _loading = true),
           onPageFinished: (loadedUrl) {
             setState(() => _loading = false);
-            // Paymob redirects to a success/failure URL after payment
             if (loadedUrl.contains('success') ||
                 loadedUrl.contains('paid')) {
               context.pushReplacement('/tracking/${widget.orderId}');
@@ -78,17 +91,24 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
     return Scaffold(
       backgroundColor: kBg,
       appBar: AppBar(
-        backgroundColor: kMedicalBlue,
-        foregroundColor: Colors.white,
-        title: const Text('الدفع الإلكتروني'),
+        backgroundColor: kSurface,
+        foregroundColor: kDeepNavy,
+        elevation: 0,
+        systemOverlayStyle: SystemUiOverlayStyle.dark,
+        title: Text('الدفع الإلكتروني',
+            style: GoogleFonts.cairo(
+                color: kDeepNavy, fontSize: 17, fontWeight: FontWeight.w700)),
         leading: IconButton(
-          icon: const Icon(Icons.close),
+          icon: const Icon(Icons.close, color: kDeepNavy),
           onPressed: () {
             showDialog(
               context: context,
               builder: (_) => AlertDialog(
-                title: const Text('إلغاء الدفع؟'),
-                content: const Text('هل تريد إلغاء عملية الدفع والعودة؟'),
+                title: Text('إلغاء الدفع؟',
+                    style:
+                        GoogleFonts.cairo(fontWeight: FontWeight.w700)),
+                content: Text('هل تريد إلغاء عملية الدفع والعودة؟',
+                    style: GoogleFonts.notoKufiArabic()),
                 actions: [
                   TextButton(
                     onPressed: () => Navigator.pop(context),
@@ -99,7 +119,8 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                       Navigator.pop(context);
                       context.pop();
                     },
-                    child: const Text('نعم، إلغاء'),
+                    child: Text('نعم، إلغاء',
+                        style: GoogleFonts.cairo(color: kError)),
                   ),
                 ],
               ),
@@ -109,38 +130,29 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
       ),
       body: Stack(
         children: [
+          // Error state
           if (_error != null)
             Center(
               child: Padding(
                 padding: const EdgeInsets.all(24),
                 child: Container(
                   padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    color: kSurface,
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: const [
-                      BoxShadow(
-                          color: kCardShadowBlue,
-                          blurRadius: 24,
-                          offset: Offset(0, 6)),
-                    ],
-                  ),
+                  decoration: kCardDecoration(),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Container(
-                        width: 64,
-                        height: 64,
-                        decoration: BoxDecoration(
-                          color: kError.withValues(alpha: 0.10),
+                        width: 72, height: 72,
+                        decoration: const BoxDecoration(
+                          color: kErrorLight,
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(Icons.error_outline,
-                            color: kError, size: 34),
+                            color: kError, size: 36),
                       ),
                       const SizedBox(height: 16),
                       Text(_error!,
-                          style: const TextStyle(color: kError),
+                          style: GoogleFonts.notoKufiArabic(color: kError),
                           textAlign: TextAlign.center),
                       const SizedBox(height: 20),
                       _GradientButton(
@@ -160,33 +172,88 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
               ),
             )
           else if (_webController != null)
+            // Actual WebView
             WebViewWidget(controller: _webController!)
           else
-            const Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  SizedBox(
-                    width: 52,
-                    height: 52,
-                    child: CircularProgressIndicator(
-                        color: kMedicalBlue, strokeWidth: 3),
-                  ),
-                  SizedBox(height: 16),
-                  Text(
-                    'جارٍ تحميل صفحة الدفع...',
-                    style: TextStyle(color: kTextSecondary, fontSize: 14),
-                  ),
-                ],
+            // Initial branded loading card
+            Center(
+              child: AnimatedBuilder(
+                animation: _shimmerCtrl,
+                builder: (context, child) {
+                  return Container(
+                    margin: const EdgeInsets.all(32),
+                    padding: const EdgeInsets.all(32),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(color: kDivider),
+                      gradient: LinearGradient(
+                        colors: [
+                          kSurface,
+                          kMedicalBlueLight.withValues(
+                              alpha: 0.3 * _shimmerCtrl.value),
+                          kSurface,
+                        ],
+                        stops: const [0.0, 0.5, 1.0],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      boxShadow: const [
+                        BoxShadow(
+                            color: kShadowBlue,
+                            blurRadius: 20,
+                            offset: Offset(0, 6)),
+                        BoxShadow(
+                            color: kShadowDeep,
+                            blurRadius: 4,
+                            offset: Offset(0, 2)),
+                      ],
+                    ),
+                    child: child,
+                  );
+                },
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 64, height: 64,
+                      decoration: BoxDecoration(
+                        color: kMedicalBlueLight,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.lock_outline,
+                          color: kMedicalBlue, size: 32),
+                    ),
+                    const SizedBox(height: 16),
+                    Text('جارٍ تحميل صفحة الدفع...',
+                        style: GoogleFonts.cairo(
+                            color: kTextPrimary,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 15)),
+                    const SizedBox(height: 8),
+                    Text('اتصال آمن عبر Paymob',
+                        style: GoogleFonts.notoKufiArabic(
+                            color: kTextSecondary, fontSize: 13)),
+                    const SizedBox(height: 20),
+                    const SizedBox(
+                      width: 36, height: 36,
+                      child: CircularProgressIndicator(
+                          color: kMedicalBlue, strokeWidth: 3),
+                    ),
+                  ],
+                ),
               ),
             ),
+
+          // Page-change loading overlay (on top of WebView)
           if (_loading && _webController != null)
-            const Center(
-              child: SizedBox(
-                width: 52,
-                height: 52,
-                child: CircularProgressIndicator(
-                    color: kMedicalBlue, strokeWidth: 3),
+            Container(
+              color: Colors.white.withValues(alpha: 0.6),
+              child: const Center(
+                child: SizedBox(
+                  width: 40, height: 40,
+                  child: CircularProgressIndicator(
+                      color: kMedicalBlue, strokeWidth: 3),
+                ),
               ),
             ),
         ],
@@ -220,7 +287,7 @@ class _GradientButton extends StatefulWidget {
 class _GradientButtonState extends State<_GradientButton>
     with SingleTickerProviderStateMixin {
   late final AnimationController _ctrl = AnimationController(
-      vsync: this, duration: const Duration(milliseconds: 90));
+      vsync: this, duration: const Duration(milliseconds: 80));
   late final Animation<double> _scale =
       Tween(begin: 1.0, end: 0.96).animate(
           CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut));
@@ -235,9 +302,7 @@ class _GradientButtonState extends State<_GradientButton>
   Widget build(BuildContext context) => ScaleTransition(
         scale: _scale,
         child: GestureDetector(
-          onTapDown: (_) {
-            if (!widget.loading) _ctrl.forward();
-          },
+          onTapDown: (_) { if (!widget.loading) _ctrl.forward(); },
           onTapUp: (_) {
             _ctrl.reverse();
             if (!widget.loading) widget.onPressed();
@@ -263,8 +328,7 @@ class _GradientButtonState extends State<_GradientButton>
             child: Center(
               child: widget.loading
                   ? const SizedBox(
-                      width: 22,
-                      height: 22,
+                      width: 22, height: 22,
                       child: CircularProgressIndicator(
                           color: Colors.white, strokeWidth: 2.5),
                     )
@@ -275,14 +339,11 @@ class _GradientButtonState extends State<_GradientButton>
                           Icon(widget.icon, color: Colors.white, size: 20),
                           const SizedBox(width: 8),
                         ],
-                        Text(
-                          widget.label,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 16,
-                          ),
-                        ),
+                        Text(widget.label,
+                            style: GoogleFonts.cairo(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 16)),
                       ],
                     ),
             ),

@@ -1,8 +1,10 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../core/theme/app_theme.dart';
@@ -19,8 +21,38 @@ class OrderFlowScreen extends ConsumerStatefulWidget {
   ConsumerState<OrderFlowScreen> createState() => _OrderFlowScreenState();
 }
 
-class _OrderFlowScreenState extends ConsumerState<OrderFlowScreen> {
-  int _step = 0; // 0=confirm, 1=address, 2=prescription(optional), 3=payment
+class _OrderFlowScreenState extends ConsumerState<OrderFlowScreen>
+    with TickerProviderStateMixin {
+  int _step = 0;
+
+  late AnimationController _stepAnimCtrl;
+  late Animation<double> _stepFade;
+  late Animation<Offset> _stepSlide;
+
+  @override
+  void initState() {
+    super.initState();
+    _stepAnimCtrl = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 280));
+    _stepFade  = CurvedAnimation(parent: _stepAnimCtrl, curve: Curves.easeOut);
+    _stepSlide = Tween<Offset>(
+      begin: const Offset(0.05, 0),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _stepAnimCtrl, curve: Curves.easeOut));
+    _stepAnimCtrl.forward();
+  }
+
+  @override
+  void dispose() {
+    _stepAnimCtrl.dispose();
+    super.dispose();
+  }
+
+  void _animateToStep(int newStep) {
+    _stepAnimCtrl.reset();
+    setState(() => _step = newStep);
+    _stepAnimCtrl.forward();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -42,59 +74,69 @@ class _OrderFlowScreenState extends ConsumerState<OrderFlowScreen> {
     return Scaffold(
       backgroundColor: kBg,
       appBar: AppBar(
-        backgroundColor: kMedicalBlue,
-        foregroundColor: Colors.white,
-        title: Text(steps[_step]),
+        backgroundColor: kSurface,
+        foregroundColor: kDeepNavy,
+        elevation: 0,
+        systemOverlayStyle: SystemUiOverlayStyle.dark,
+        title: Text(
+          steps[_step],
+          style: GoogleFonts.cairo(
+              color: kDeepNavy, fontSize: 17, fontWeight: FontWeight.w700),
+        ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back_ios_new, color: kDeepNavy),
           onPressed: () {
             if (_step == 0) {
               context.pop();
             } else {
-              setState(() => _step--);
+              _animateToStep(_step - 1);
             }
           },
         ),
       ),
       body: Column(
         children: [
-          // ── Step indicator ─────────────────────────────────────────
-          _StepDots(current: _step, total: totalSteps),
+          _StepIndicator(current: _step, total: totalSteps),
 
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(20),
-              child: [
-                _StepConfirmDrug(
-                  drug: drug,
-                  quantity: flowState.quantity,
-                  onQtyChanged: controller.setQuantity,
+              child: FadeTransition(
+                opacity: _stepFade,
+                child: SlideTransition(
+                  position: _stepSlide,
+                  child: [
+                    _StepConfirmDrug(
+                      drug: drug,
+                      quantity: flowState.quantity,
+                      onQtyChanged: controller.setQuantity,
+                    ),
+                    _StepAddress(
+                      selected: flowState.selectedAddress,
+                      onSelected: controller.setAddress,
+                    ),
+                    if (drug.requiresPrescription)
+                      _StepPrescription(
+                        imagePath: flowState.prescriptionImagePath,
+                        onPicked: controller.setPrescription,
+                      ),
+                    _StepPayment(
+                      method: flowState.paymentMethod,
+                      onChanged: controller.setPaymentMethod,
+                      codAmount: drug.officialPriceEgp,
+                    ),
+                  ][_step],
                 ),
-                _StepAddress(
-                  selected: flowState.selectedAddress,
-                  onSelected: controller.setAddress,
-                ),
-                if (drug.requiresPrescription)
-                  _StepPrescription(
-                    imagePath: flowState.prescriptionImagePath,
-                    onPicked: controller.setPrescription,
-                  ),
-                _StepPayment(
-                  method: flowState.paymentMethod,
-                  onChanged: controller.setPaymentMethod,
-                  codAmount: drug.officialPriceEgp,
-                ),
-              ][_step],
+              ),
             ),
           ),
 
-          // ── Error text above bottom bar ───────────────────────────
           if (flowState.error != null)
             Padding(
               padding:
                   const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
               child: Text(flowState.error!,
-                  style: const TextStyle(color: kError),
+                  style: GoogleFonts.notoKufiArabic(color: kError),
                   textAlign: TextAlign.center),
             ),
 
@@ -109,11 +151,10 @@ class _OrderFlowScreenState extends ConsumerState<OrderFlowScreen> {
   }
 
   void _onNext(int totalSteps, bool requiresPrescription) async {
-    final flowState = ref.read(orderFlowControllerProvider);
+    final flowState  = ref.read(orderFlowControllerProvider);
     final controller = ref.read(orderFlowControllerProvider.notifier);
 
     if (_step < totalSteps - 1) {
-      // Validate current step
       if (_step == 0 && flowState.quantity < 1) return;
       if (_step == 1 && flowState.selectedAddress == null) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -121,17 +162,14 @@ class _OrderFlowScreenState extends ConsumerState<OrderFlowScreen> {
         );
         return;
       }
-      setState(() => _step++);
+      _animateToStep(_step + 1);
       return;
     }
 
-    // Last step — submit
     final order = await controller.submit();
-    if (order == null) return; // error set in state
+    if (order == null) return;
 
-    // Refresh orders list
     ref.read(ordersListControllerProvider.notifier).refresh();
-
     if (!mounted) return;
 
     if (flowState.paymentMethod == 'card') {
@@ -142,10 +180,10 @@ class _OrderFlowScreenState extends ConsumerState<OrderFlowScreen> {
   }
 }
 
-// ─── Step Dots ────────────────────────────────────────────────────────────────
+// ─── Step Indicator ───────────────────────────────────────────────────────────
 
-class _StepDots extends StatelessWidget {
-  const _StepDots({required this.current, required this.total});
+class _StepIndicator extends StatelessWidget {
+  const _StepIndicator({required this.current, required this.total});
   final int current;
   final int total;
 
@@ -153,54 +191,54 @@ class _StepDots extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       color: kSurface,
-      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+      padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
       child: Row(
         children: List.generate(total * 2 - 1, (i) {
           if (i.isOdd) {
-            // connector line
             final filled = i ~/ 2 < current;
             return Expanded(
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 300),
                 height: 2,
-                color: filled ? kMedicalBlue : const Color(0xFFE2E8F0),
+                color: filled ? kMedicalBlue : kDivider,
               ),
             );
           }
           final stepIdx = i ~/ 2;
           final done   = stepIdx < current;
           final active = stepIdx == current;
+
           return AnimatedContainer(
             duration: const Duration(milliseconds: 300),
-            width: active ? 28 : 20,
-            height: active ? 28 : 20,
+            width: active ? 32 : 28,
+            height: active ? 32 : 28,
             decoration: BoxDecoration(
               color: done
-                  ? kMedicalBlue
+                  ? kSuccess
                   : active
                       ? kMedicalBlue
-                      : const Color(0xFFE2E8F0),
+                      : kDivider,
               shape: BoxShape.circle,
-              border: active
-                  ? Border.all(
-                      color: kMedicalBlue.withValues(alpha: 0.3), width: 3)
+              boxShadow: active
+                  ? [
+                      BoxShadow(
+                          color: kAmber.withValues(alpha: 0.40),
+                          blurRadius: 10,
+                          offset: const Offset(0, 2))
+                    ]
                   : null,
             ),
             child: Center(
               child: done
-                  ? const Icon(Icons.check, size: 12, color: Colors.white)
-                  : active
-                      ? const SizedBox(
-                          width: 8,
-                          height: 8,
-                          child: DecoratedBox(
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                        )
-                      : null,
+                  ? const Icon(Icons.check, size: 14, color: Colors.white)
+                  : Text(
+                      '${stepIdx + 1}',
+                      style: GoogleFonts.cairo(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: active ? Colors.white : kTextSecondary,
+                      ),
+                    ),
             ),
           );
         }),
@@ -212,10 +250,11 @@ class _StepDots extends StatelessWidget {
 // ─── Bottom Bar ───────────────────────────────────────────────────────────────
 
 class _BottomBar extends StatelessWidget {
-  const _BottomBar(
-      {required this.isLastStep,
-      required this.isSubmitting,
-      required this.onNext});
+  const _BottomBar({
+    required this.isLastStep,
+    required this.isSubmitting,
+    required this.onNext,
+  });
   final bool isLastStep;
   final bool isSubmitting;
   final VoidCallback onNext;
@@ -228,19 +267,15 @@ class _BottomBar extends StatelessWidget {
       decoration: const BoxDecoration(
         color: kSurface,
         boxShadow: [
-          BoxShadow(
-              color: kCardShadowBlue,
-              blurRadius: 16,
-              offset: Offset(0, -4)),
-          BoxShadow(
-              color: Color(0x06000000),
-              blurRadius: 4,
-              offset: Offset(0, -1)),
+          BoxShadow(color: kShadowBlue, blurRadius: 16, offset: Offset(0, -4)),
+          BoxShadow(color: kShadowDeep, blurRadius: 4, offset: Offset(0, -1)),
         ],
       ),
       child: _GradientButton(
         label: isLastStep ? 'تأكيد الطلب' : 'التالي',
-        icon: isLastStep ? Icons.check_circle_outline : Icons.arrow_back_ios_new,
+        icon: isLastStep
+            ? Icons.check_circle_outline
+            : Icons.arrow_back_ios_new,
         loading: isSubmitting,
         onPressed: onNext,
       ),
@@ -248,11 +283,14 @@ class _BottomBar extends StatelessWidget {
   }
 }
 
-// ─── Step 0: Confirm drug ─────────────────────────────────────────────────────
+// ─── Step 0: Confirm Drug ─────────────────────────────────────────────────────
 
 class _StepConfirmDrug extends StatelessWidget {
-  const _StepConfirmDrug(
-      {required this.drug, required this.quantity, required this.onQtyChanged});
+  const _StepConfirmDrug({
+    required this.drug,
+    required this.quantity,
+    required this.onQtyChanged,
+  });
   final DrugResult drug;
   final int quantity;
   final ValueChanged<int> onQtyChanged;
@@ -262,31 +300,16 @@ class _StepConfirmDrug extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // Drug info card
         Container(
           padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: kSurface,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: const [
-              BoxShadow(
-                  color: kCardShadowBlue,
-                  blurRadius: 24,
-                  offset: Offset(0, 6)),
-              BoxShadow(
-                  color: Color(0x06000000),
-                  blurRadius: 6,
-                  offset: Offset(0, 1)),
-            ],
-          ),
+          decoration: kCardDecoration(),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
                   Container(
-                    width: 52,
-                    height: 52,
+                    width: 56, height: 56,
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
                         colors: [kMedicalBlue, kMedicalBlueDark],
@@ -295,7 +318,7 @@ class _StepConfirmDrug extends StatelessWidget {
                       ),
                       borderRadius: BorderRadius.circular(16),
                     ),
-                    child: const Icon(Icons.medication,
+                    child: const Icon(Icons.medication_rounded,
                         color: Colors.white, size: 28),
                   ),
                   const SizedBox(width: 14),
@@ -304,13 +327,13 @@ class _StepConfirmDrug extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(drug.nameAr,
-                            style: const TextStyle(
-                                fontWeight: FontWeight.w700,
-                                fontSize: 17,
+                            style: GoogleFonts.cairo(
+                                fontWeight: FontWeight.w800,
+                                fontSize: 22,
                                 color: kTextPrimary)),
                         if (drug.nameEn.isNotEmpty)
                           Text(drug.nameEn,
-                              style: const TextStyle(
+                              style: GoogleFonts.notoKufiArabic(
                                   color: kTextSecondary, fontSize: 13)),
                       ],
                     ),
@@ -320,26 +343,25 @@ class _StepConfirmDrug extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
-                        color: kWarning.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const Text('روشتة',
-                          style: TextStyle(
+                          color: kWarningLight,
+                          borderRadius: BorderRadius.circular(8)),
+                      child: Text('روشتة',
+                          style: GoogleFonts.cairo(
                               fontSize: 11,
                               color: kWarning,
-                              fontWeight: FontWeight.w600)),
+                              fontWeight: FontWeight.w700)),
                     ),
                 ],
               ),
               const SizedBox(height: 16),
-              const Divider(color: Color(0xFFE2E8F0)),
+              Divider(color: kDivider),
               const SizedBox(height: 10),
               if (drug.scientificName != null)
                 _DetailRow('التركيب', drug.scientificName!),
               if (drug.form != null) _DetailRow('الشكل', drug.form!),
               if (drug.strength != null) _DetailRow('التركيز', drug.strength!),
               if (drug.officialPriceEgp != null)
-                _DetailRow('السعر',
+                _PriceRow('السعر',
                     '${drug.officialPriceEgp!.toStringAsFixed(2)} ج.م'),
             ],
           ),
@@ -347,33 +369,27 @@ class _StepConfirmDrug extends StatelessWidget {
 
         const SizedBox(height: 28),
 
-        // Quantity
         Text('الكمية',
-            style: Theme.of(context)
-                .textTheme
-                .titleMedium
-                ?.copyWith(
-                    fontWeight: FontWeight.w700, color: kTextPrimary)),
+            style: GoogleFonts.cairo(
+                fontWeight: FontWeight.w700, fontSize: 16, color: kTextPrimary)),
         const SizedBox(height: 16),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             _QtyButton(
-              icon: Icons.remove,
-              onTap: () => onQtyChanged(quantity - 1),
-            ),
+                icon: Icons.remove,
+                onTap: () => onQtyChanged(quantity - 1)),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 32),
               child: Text('$quantity',
-                  style: const TextStyle(
-                      fontSize: 32,
+                  style: GoogleFonts.cairo(
+                      fontSize: 36,
                       fontWeight: FontWeight.w800,
-                      color: kTextPrimary)),
+                      color: kAmber)),
             ),
             _QtyButton(
-              icon: Icons.add,
-              onTap: () => onQtyChanged(quantity + 1),
-            ),
+                icon: Icons.add,
+                onTap: () => onQtyChanged(quantity + 1)),
           ],
         ),
       ],
@@ -387,30 +403,27 @@ class _QtyButton extends StatelessWidget {
   final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 52,
-        height: 52,
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [kMedicalBlue, kMedicalBlueDark],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+  Widget build(BuildContext context) => GestureDetector(
+        onTap: onTap,
+        child: Container(
+          width: 52, height: 52,
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [kMedicalBlue, kMedicalBlueDark],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                  color: kMedicalBlue.withValues(alpha: 0.35),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4)),
+            ],
           ),
-          shape: BoxShape.circle,
-          boxShadow: [
-            BoxShadow(
-                color: kMedicalBlue.withValues(alpha: 0.35),
-                blurRadius: 12,
-                offset: const Offset(0, 4)),
-          ],
+          child: Icon(icon, color: Colors.white, size: 24),
         ),
-        child: Icon(icon, color: Colors.white, size: 24),
-      ),
-    );
-  }
+      );
 }
 
 class _DetailRow extends StatelessWidget {
@@ -419,24 +432,47 @@ class _DetailRow extends StatelessWidget {
   final String value;
 
   @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        children: [
-          SizedBox(
-              width: 80,
-              child: Text(label,
-                  style: const TextStyle(
-                      color: kTextSecondary, fontSize: 13))),
-          Expanded(
-              child: Text(value,
-                  style: const TextStyle(
-                      fontSize: 13, color: kTextPrimary))),
-        ],
-      ),
-    );
-  }
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Row(
+          children: [
+            SizedBox(
+                width: 80,
+                child: Text(label,
+                    style: GoogleFonts.notoKufiArabic(
+                        color: kTextSecondary, fontSize: 13))),
+            Expanded(
+                child: Text(value,
+                    style: GoogleFonts.notoKufiArabic(
+                        fontSize: 13, color: kTextPrimary))),
+          ],
+        ),
+      );
+}
+
+class _PriceRow extends StatelessWidget {
+  const _PriceRow(this.label, this.value);
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Row(
+          children: [
+            SizedBox(
+                width: 80,
+                child: Text(label,
+                    style: GoogleFonts.notoKufiArabic(
+                        color: kTextSecondary, fontSize: 13))),
+            Text(value,
+                style: GoogleFonts.cairo(
+                    fontSize: 14,
+                    color: kAmber,
+                    fontWeight: FontWeight.w700)),
+          ],
+        ),
+      );
 }
 
 // ─── Step 1: Address ──────────────────────────────────────────────────────────
@@ -481,19 +517,15 @@ class _StepAddress extends ConsumerWidget {
                     duration: const Duration(milliseconds: 200),
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: isSelected
-                          ? kMedicalBlueLight
-                          : kSurface,
+                      color: isSelected ? kMedicalBlueLight : kSurface,
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: isSelected
-                            ? kMedicalBlue
-                            : const Color(0xFFE2E8F0),
+                        color: isSelected ? kMedicalBlue : kDivider,
                         width: isSelected ? 2 : 1,
                       ),
                       boxShadow: const [
                         BoxShadow(
-                            color: kCardShadowBlue,
+                            color: kShadowBlue,
                             blurRadius: 16,
                             offset: Offset(0, 4)),
                       ],
@@ -512,14 +544,14 @@ class _StepAddress extends ConsumerWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(addr.label,
-                                  style: TextStyle(
+                                  style: GoogleFonts.cairo(
                                       fontWeight: FontWeight.w600,
                                       color: isSelected
                                           ? kMedicalBlue
                                           : kTextPrimary)),
                               const SizedBox(height: 2),
                               Text(addr.addressLine,
-                                  style: const TextStyle(
+                                  style: GoogleFonts.notoKufiArabic(
                                       color: kTextSecondary, fontSize: 13)),
                             ],
                           ),
@@ -566,22 +598,22 @@ class _StepPrescriptionState extends State<_StepPrescription> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // Info banner
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: kWarning.withValues(alpha: 0.08),
+            color: kWarningLight,
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: kWarning.withValues(alpha: 0.3)),
+            border: Border.all(color: kWarning.withValues(alpha: 0.4)),
           ),
-          child: const Row(
+          child: Row(
             children: [
-              Icon(Icons.info_outline, color: kWarning, size: 20),
-              SizedBox(width: 10),
+              const Icon(Icons.info_outline, color: kWarning, size: 20),
+              const SizedBox(width: 10),
               Expanded(
                 child: Text(
                     'هذا الدواء يستلزم روشتة طبية. يرجى رفع صورة الروشتة.',
-                    style: TextStyle(color: kWarning, fontSize: 13)),
+                    style: GoogleFonts.notoKufiArabic(
+                        color: kWarning, fontSize: 13)),
               ),
             ],
           ),
@@ -600,7 +632,7 @@ class _StepPrescriptionState extends State<_StepPrescription> {
               ),
               boxShadow: const [
                 BoxShadow(
-                    color: kCardShadowBlue,
+                    color: kShadowBlue,
                     blurRadius: 16,
                     offset: Offset(0, 4)),
               ],
@@ -610,19 +642,41 @@ class _StepPrescriptionState extends State<_StepPrescription> {
           TextButton.icon(
             icon: const Icon(Icons.refresh),
             label: const Text('تغيير الصورة'),
-            onPressed: () => _showSourceSheet(),
+            onPressed: _showSourceSheet,
           ),
         ] else ...[
-          _GradientButton(
-            label: 'التقاط صورة من الكاميرا',
-            icon: Icons.camera_alt_outlined,
-            onPressed: () => _pickImage(ImageSource.camera),
-          ),
-          const SizedBox(height: 10),
-          OutlinedButton.icon(
-            icon: const Icon(Icons.photo_library_outlined),
-            label: const Text('اختيار من المعرض'),
-            onPressed: () => _pickImage(ImageSource.gallery),
+          GestureDetector(
+            onTap: _showSourceSheet,
+            child: Container(
+              height: 160,
+              decoration: BoxDecoration(
+                color: kMedicalBlueLight.withValues(alpha: 0.5),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: kMedicalBlue, width: 1.5),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    width: 56, height: 56,
+                    decoration: BoxDecoration(
+                        color: kMedicalBlueLight, shape: BoxShape.circle),
+                    child: const Icon(Icons.camera_alt_outlined,
+                        color: kMedicalBlue, size: 28),
+                  ),
+                  const SizedBox(height: 12),
+                  Text('اضغط لرفع صورة الروشتة',
+                      style: GoogleFonts.cairo(
+                          color: kMedicalBlue,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14)),
+                  const SizedBox(height: 4),
+                  Text('كاميرا أو معرض الصور',
+                      style: GoogleFonts.notoKufiArabic(
+                          color: kTextSecondary, fontSize: 12)),
+                ],
+              ),
+            ),
           ),
         ],
       ],
@@ -632,26 +686,45 @@ class _StepPrescriptionState extends State<_StepPrescription> {
   void _showSourceSheet() {
     showModalBottomSheet(
       context: context,
-      builder: (_) => Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          ListTile(
-            leading: const Icon(Icons.camera_alt),
-            title: const Text('الكاميرا'),
-            onTap: () {
-              Navigator.pop(context);
-              _pickImage(ImageSource.camera);
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.photo_library),
-            title: const Text('المعرض'),
-            onTap: () {
-              Navigator.pop(context);
-              _pickImage(ImageSource.gallery);
-            },
-          ),
-        ],
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (_) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: Container(
+                width: 40, height: 40,
+                decoration: BoxDecoration(
+                    color: kMedicalBlueLight,
+                    borderRadius: BorderRadius.circular(10)),
+                child: const Icon(Icons.camera_alt, color: kMedicalBlue),
+              ),
+              title: Text('الكاميرا',
+                  style: GoogleFonts.cairo(fontWeight: FontWeight.w600)),
+              onTap: () {
+                Navigator.pop(context);
+                _pickImage(ImageSource.camera);
+              },
+            ),
+            ListTile(
+              leading: Container(
+                width: 40, height: 40,
+                decoration: BoxDecoration(
+                    color: kSuccessLight,
+                    borderRadius: BorderRadius.circular(10)),
+                child: const Icon(Icons.photo_library, color: kSuccess),
+              ),
+              title: Text('المعرض',
+                  style: GoogleFonts.cairo(fontWeight: FontWeight.w600)),
+              onTap: () {
+                Navigator.pop(context);
+                _pickImage(ImageSource.gallery);
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -660,10 +733,11 @@ class _StepPrescriptionState extends State<_StepPrescription> {
 // ─── Step 3: Payment ──────────────────────────────────────────────────────────
 
 class _StepPayment extends StatelessWidget {
-  const _StepPayment(
-      {required this.method,
-      required this.onChanged,
-      required this.codAmount});
+  const _StepPayment({
+    required this.method,
+    required this.onChanged,
+    required this.codAmount,
+  });
   final String method;
   final ValueChanged<String> onChanged;
   final double? codAmount;
@@ -674,17 +748,16 @@ class _StepPayment extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text('اختر طريقة الدفع',
-            style: Theme.of(context)
-                .textTheme
-                .titleMedium
-                ?.copyWith(
-                    fontWeight: FontWeight.w700, color: kTextPrimary)),
+            style: GoogleFonts.cairo(
+                fontWeight: FontWeight.w700,
+                fontSize: 16,
+                color: kTextPrimary)),
         const SizedBox(height: 16),
         _PaymentOption(
           value: 'cod',
           groupValue: method,
           onChanged: onChanged,
-          icon: Icons.money,
+          icon: Icons.money_rounded,
           title: 'كاش عند الاستلام',
           subtitle: codAmount != null
               ? 'ستدفع ${codAmount!.toStringAsFixed(2)} ج.م + رسوم توصيل'
@@ -695,7 +768,7 @@ class _StepPayment extends StatelessWidget {
           value: 'card',
           groupValue: method,
           onChanged: onChanged,
-          icon: Icons.credit_card,
+          icon: Icons.credit_card_rounded,
           title: 'بطاقة بنكية',
           subtitle: 'ادفع الآن بأمان عبر Paymob',
         ),
@@ -705,13 +778,14 @@ class _StepPayment extends StatelessWidget {
 }
 
 class _PaymentOption extends StatelessWidget {
-  const _PaymentOption(
-      {required this.value,
-      required this.groupValue,
-      required this.onChanged,
-      required this.icon,
-      required this.title,
-      required this.subtitle});
+  const _PaymentOption({
+    required this.value,
+    required this.groupValue,
+    required this.onChanged,
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+  });
   final String value;
   final String groupValue;
   final ValueChanged<String> onChanged;
@@ -731,29 +805,22 @@ class _PaymentOption extends StatelessWidget {
           color: selected ? kMedicalBlueLight : kSurface,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-              color: selected ? kMedicalBlue : const Color(0xFFE2E8F0),
+              color: selected ? kMedicalBlue : kDivider,
               width: selected ? 2 : 1),
           boxShadow: const [
-            BoxShadow(
-                color: kCardShadowBlue,
-                blurRadius: 16,
-                offset: Offset(0, 4)),
+            BoxShadow(color: kShadowBlue, blurRadius: 16, offset: Offset(0, 4)),
           ],
         ),
         child: Row(
           children: [
             Container(
-              width: 48,
-              height: 48,
+              width: 48, height: 48,
               decoration: BoxDecoration(
-                color: selected
-                    ? kMedicalBlue
-                    : const Color(0xFFF3F4F6),
+                color: selected ? kMedicalBlue : const Color(0xFFF3F4F6),
                 borderRadius: BorderRadius.circular(14),
               ),
               child: Icon(icon,
-                  color: selected ? Colors.white : kTextSecondary,
-                  size: 24),
+                  color: selected ? Colors.white : kTextSecondary, size: 24),
             ),
             const SizedBox(width: 14),
             Expanded(
@@ -761,21 +828,19 @@ class _PaymentOption extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(title,
-                      style: TextStyle(
-                          fontWeight: FontWeight.w600,
+                      style: GoogleFonts.cairo(
+                          fontWeight: FontWeight.w700,
                           fontSize: 15,
                           color: selected ? kMedicalBlue : kTextPrimary)),
                   const SizedBox(height: 2),
                   Text(subtitle,
-                      style: const TextStyle(
+                      style: GoogleFonts.notoKufiArabic(
                           fontSize: 12, color: kTextSecondary)),
                 ],
               ),
             ),
             Icon(
-              selected
-                  ? Icons.check_circle
-                  : Icons.circle_outlined,
+              selected ? Icons.check_circle : Icons.circle_outlined,
               color: selected ? kMedicalBlue : kTextSecondary,
             ),
           ],
@@ -810,7 +875,7 @@ class _GradientButton extends StatefulWidget {
 class _GradientButtonState extends State<_GradientButton>
     with SingleTickerProviderStateMixin {
   late final AnimationController _ctrl = AnimationController(
-      vsync: this, duration: const Duration(milliseconds: 90));
+      vsync: this, duration: const Duration(milliseconds: 80));
   late final Animation<double> _scale =
       Tween(begin: 1.0, end: 0.96).animate(
           CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut));
@@ -825,9 +890,7 @@ class _GradientButtonState extends State<_GradientButton>
   Widget build(BuildContext context) => ScaleTransition(
         scale: _scale,
         child: GestureDetector(
-          onTapDown: (_) {
-            if (!widget.loading) _ctrl.forward();
-          },
+          onTapDown: (_) { if (!widget.loading) _ctrl.forward(); },
           onTapUp: (_) {
             _ctrl.reverse();
             if (!widget.loading) widget.onPressed();
@@ -853,8 +916,7 @@ class _GradientButtonState extends State<_GradientButton>
             child: Center(
               child: widget.loading
                   ? const SizedBox(
-                      width: 22,
-                      height: 22,
+                      width: 22, height: 22,
                       child: CircularProgressIndicator(
                           color: Colors.white, strokeWidth: 2.5),
                     )
@@ -865,14 +927,11 @@ class _GradientButtonState extends State<_GradientButton>
                           Icon(widget.icon, color: Colors.white, size: 20),
                           const SizedBox(width: 8),
                         ],
-                        Text(
-                          widget.label,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 16,
-                          ),
-                        ),
+                        Text(widget.label,
+                            style: GoogleFonts.cairo(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 16)),
                       ],
                     ),
             ),

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/theme/app_theme.dart';
 import '../application/order_tracking_controller.dart';
@@ -16,9 +18,15 @@ class OrdersHistoryScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: kBg,
       appBar: AppBar(
-        title: const Text('طلباتي'),
-        backgroundColor: kMedicalBlue,
-        foregroundColor: Colors.white,
+        backgroundColor: kSurface,
+        foregroundColor: kDeepNavy,
+        elevation: 0,
+        systemOverlayStyle: SystemUiOverlayStyle.dark,
+        title: Text(
+          'طلباتي',
+          style: GoogleFonts.cairo(
+              color: kDeepNavy, fontSize: 18, fontWeight: FontWeight.w700),
+        ),
       ),
       body: ordersAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -28,8 +36,8 @@ class OrdersHistoryScreen extends ConsumerWidget {
             children: [
               const Icon(Icons.error_outline, size: 56, color: kError),
               const SizedBox(height: 12),
-              const Text('تعذّر تحميل الطلبات',
-                  style: TextStyle(color: kTextSecondary)),
+              Text('تعذّر تحميل الطلبات',
+                  style: GoogleFonts.notoKufiArabic(color: kTextSecondary)),
               const SizedBox(height: 16),
               TextButton(
                 onPressed: () =>
@@ -45,24 +53,37 @@ class OrdersHistoryScreen extends ConsumerWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.shopping_bag_outlined,
-                      size: 80, color: kTextSecondary),
-                  const SizedBox(height: 16),
-                  const Text('لا توجد طلبات',
-                      style: TextStyle(
+                  Container(
+                    width: 100, height: 100,
+                    decoration: const BoxDecoration(
+                      color: kMedicalBlueLight,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.medication_outlined,
+                        size: 52, color: kMedicalBlue),
+                  ),
+                  const SizedBox(height: 20),
+                  Text('لا توجد طلبات',
+                      style: GoogleFonts.cairo(
                           color: kTextPrimary,
                           fontSize: 18,
                           fontWeight: FontWeight.w700)),
                   const SizedBox(height: 6),
-                  const Text('ابحث عن دوائك وضع أول طلب',
-                      style: TextStyle(color: kTextSecondary)),
-                  const SizedBox(height: 24),
-                  _GradientButton(
-                    label: 'ابحث عن دواء',
-                    icon: Icons.search,
-                    onPressed: () {
-                      if (context.canPop()) context.pop();
-                    },
+                  Text('ابحث عن دوائك وضع أول طلب',
+                      style: GoogleFonts.notoKufiArabic(
+                          color: kTextSecondary)),
+                  const SizedBox(height: 28),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 48),
+                    child: _GradientButton(
+                      label: 'ابحث عن دواء',
+                      icon: Icons.search,
+                      onPressed: () {
+                        if (context.canPop()) context.pop();
+                      },
+                      color1: kAmber,
+                      color2: Color(0xFFD97706),
+                    ),
                   ),
                 ],
               ),
@@ -103,65 +124,41 @@ class _OrderHistoryCard extends StatelessWidget {
     return _TapScale(
       onTap: () => context.push('/tracking/${order.id}'),
       child: Container(
-        decoration: BoxDecoration(
-          color: kSurface,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: const [
-            BoxShadow(
-                color: kCardShadowBlue,
-                blurRadius: 24,
-                offset: Offset(0, 6)),
-            BoxShadow(
-                color: Color(0x06000000),
-                blurRadius: 6,
-                offset: Offset(0, 1)),
-          ],
-        ),
+        decoration: kCardDecoration(),
         child: Row(
           children: [
             // Left accent bar
             Container(
-              width: 4,
-              height: 72,
+              width: 4, height: 72,
               decoration: BoxDecoration(
                 color: _statusColor,
                 borderRadius:
-                    const BorderRadius.horizontal(left: Radius.circular(16)),
+                    const BorderRadius.horizontal(left: Radius.circular(20)),
               ),
             ),
             const SizedBox(width: 14),
-            // Icon circle
             CircleAvatar(
               radius: 22,
               backgroundColor: _statusColor.withValues(alpha: 0.12),
               child: Icon(Icons.medication, color: _statusColor, size: 22),
             ),
             const SizedBox(width: 12),
-            // Drug + order number
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(drugName,
-                      style: const TextStyle(
+                      style: GoogleFonts.cairo(
                           fontWeight: FontWeight.w700,
                           fontSize: 15,
                           color: kTextPrimary)),
                   const SizedBox(height: 3),
                   Text('طلب #${order.id}',
-                      style: const TextStyle(
+                      style: GoogleFonts.notoKufiArabic(
                           color: kTextSecondary, fontSize: 12)),
-                  const SizedBox(height: 4),
-                  const Text(
-                    'اضغط للتتبع',
-                    style: TextStyle(
-                        fontSize: 10,
-                        color: kTextSecondary),
-                  ),
                 ],
               ),
             ),
-            // Status badge
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
@@ -171,13 +168,15 @@ class _OrderHistoryCard extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: _statusColor.withValues(alpha: 0.10),
                     borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                        color: _statusColor.withValues(alpha: 0.20)),
                   ),
                   child: Text(
                     order.status.label,
-                    style: TextStyle(
+                    style: GoogleFonts.cairo(
                         fontSize: 11,
                         color: _statusColor,
-                        fontWeight: FontWeight.w600),
+                        fontWeight: FontWeight.w700),
                   ),
                 ),
               ],
@@ -215,7 +214,7 @@ class _GradientButton extends StatefulWidget {
 class _GradientButtonState extends State<_GradientButton>
     with SingleTickerProviderStateMixin {
   late final AnimationController _ctrl = AnimationController(
-      vsync: this, duration: const Duration(milliseconds: 90));
+      vsync: this, duration: const Duration(milliseconds: 80));
   late final Animation<double> _scale =
       Tween(begin: 1.0, end: 0.96).animate(
           CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut));
@@ -230,9 +229,7 @@ class _GradientButtonState extends State<_GradientButton>
   Widget build(BuildContext context) => ScaleTransition(
         scale: _scale,
         child: GestureDetector(
-          onTapDown: (_) {
-            if (!widget.loading) _ctrl.forward();
-          },
+          onTapDown: (_) { if (!widget.loading) _ctrl.forward(); },
           onTapUp: (_) {
             _ctrl.reverse();
             if (!widget.loading) widget.onPressed();
@@ -258,8 +255,7 @@ class _GradientButtonState extends State<_GradientButton>
             child: Center(
               child: widget.loading
                   ? const SizedBox(
-                      width: 22,
-                      height: 22,
+                      width: 22, height: 22,
                       child: CircularProgressIndicator(
                           color: Colors.white, strokeWidth: 2.5),
                     )
@@ -270,14 +266,11 @@ class _GradientButtonState extends State<_GradientButton>
                           Icon(widget.icon, color: Colors.white, size: 20),
                           const SizedBox(width: 8),
                         ],
-                        Text(
-                          widget.label,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 16,
-                          ),
-                        ),
+                        Text(widget.label,
+                            style: GoogleFonts.cairo(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 16)),
                       ],
                     ),
             ),
@@ -286,7 +279,7 @@ class _GradientButtonState extends State<_GradientButton>
       );
 }
 
-// ─── Tap Scale Helper ─────────────────────────────────────────────────────────
+// ─── Tap Scale ────────────────────────────────────────────────────────────────
 
 class _TapScale extends StatefulWidget {
   const _TapScale({required this.child, required this.onTap});

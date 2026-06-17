@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/theme/app_theme.dart';
 import '../application/stock_controller.dart';
@@ -41,6 +43,16 @@ class _StockEditScreenState extends ConsumerState<StockEditScreen> {
     await ref.read(stockControllerProvider.notifier).save(result.drugId, qty);
   }
 
+  void _increment() {
+    final current = int.tryParse(_qtyCtrl.text.trim()) ?? 0;
+    _qtyCtrl.text = (current + 1).toString();
+  }
+
+  void _decrement() {
+    final current = int.tryParse(_qtyCtrl.text.trim()) ?? 0;
+    if (current > 0) _qtyCtrl.text = (current - 1).toString();
+  }
+
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(stockControllerProvider);
@@ -58,18 +70,27 @@ class _StockEditScreenState extends ConsumerState<StockEditScreen> {
 
     return Scaffold(
       backgroundColor: kBg,
+
+      // ── Flat white AppBar (detail screen style) ──────────────────────────
       appBar: AppBar(
-        title: const Text('تعديل المخزون'),
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [kMedicalBlue, kMedicalBlueDark],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
+        backgroundColor: kSurface,
+        foregroundColor: kDeepNavy,
+        elevation: 0,
+        centerTitle: true,
+        title: Text(
+          'تعديل المخزون',
+          style: GoogleFonts.cairo(
+            color: kDeepNavy,
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
           ),
         ),
+        bottom: const PreferredSize(
+          preferredSize: Size.fromHeight(1),
+          child: Divider(height: 1, color: kDivider),
+        ),
       ),
+
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -77,32 +98,38 @@ class _StockEditScreenState extends ConsumerState<StockEditScreen> {
           children: [
             // ── Search card ──────────────────────────────────────────────────
             Container(
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 color: kSurface,
-                borderRadius: BorderRadius.all(Radius.circular(20)),
-                boxShadow: [
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: kDivider, width: 1),
+                boxShadow: const [
                   BoxShadow(
-                      color: kCardShadowBlue,
-                      blurRadius: 24,
+                      color: kShadowBlue,
+                      blurRadius: 20,
                       offset: Offset(0, 6)),
                   BoxShadow(
-                      color: Color(0x06000000),
-                      blurRadius: 6,
-                      offset: Offset(0, 1)),
+                      color: kShadowDeep,
+                      blurRadius: 4,
+                      offset: Offset(0, 2)),
                 ],
               ),
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
               child: Row(
                 children: [
                   Expanded(
                     child: TextField(
                       controller: _codeCtrl,
                       focusNode: _codeFocus,
+                      style: GoogleFonts.notoKufiArabic(
+                          fontSize: 14, color: kTextPrimary),
                       decoration: const InputDecoration(
                         labelText: 'اسم الدواء أو الباركود أو رقم EDA',
-                        prefixIcon: Icon(Icons.qr_code_scanner_outlined),
                         hintText: 'مثال: بانادول أو الباركود',
+                        prefixIcon: Icon(Icons.search_rounded),
+                        suffixIcon: Icon(
+                          Icons.qr_code_scanner_rounded,
+                          color: kMedicalBlue,
+                        ),
                       ),
                       textInputAction: TextInputAction.search,
                       onSubmitted: (_) => _lookup(),
@@ -144,7 +171,7 @@ class _StockEditScreenState extends ConsumerState<StockEditScreen> {
                                     child: CircularProgressIndicator(
                                         strokeWidth: 2,
                                         color: Colors.white))
-                                : const Icon(Icons.search,
+                                : const Icon(Icons.search_rounded,
                                     color: Colors.white, size: 24),
                           ),
                         ),
@@ -162,21 +189,21 @@ class _StockEditScreenState extends ConsumerState<StockEditScreen> {
                 padding: const EdgeInsets.symmetric(
                     horizontal: 16, vertical: 12),
                 decoration: BoxDecoration(
-                  color: kError.withValues(alpha: 0.08),
+                  color: kErrorLight,
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(
                       color: kError.withValues(alpha: 0.35)),
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.error_outline,
+                    const Icon(Icons.error_outline_rounded,
                         color: kError, size: 18),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
                         state.error!,
-                        style:
-                            const TextStyle(color: kError, fontSize: 13),
+                        style: GoogleFonts.notoKufiArabic(
+                            color: kError, fontSize: 13),
                       ),
                     ),
                   ],
@@ -188,18 +215,19 @@ class _StockEditScreenState extends ConsumerState<StockEditScreen> {
             if (state.result != null) ...[
               const SizedBox(height: 16),
               Container(
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   color: kSurface,
-                  borderRadius: BorderRadius.all(Radius.circular(20)),
-                  boxShadow: [
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: kDivider, width: 1),
+                  boxShadow: const [
                     BoxShadow(
-                        color: kCardShadowBlue,
-                        blurRadius: 24,
+                        color: kShadowBlue,
+                        blurRadius: 20,
                         offset: Offset(0, 6)),
                     BoxShadow(
-                        color: Color(0x06000000),
-                        blurRadius: 6,
-                        offset: Offset(0, 1)),
+                        color: kShadowDeep,
+                        blurRadius: 4,
+                        offset: Offset(0, 2)),
                   ],
                 ),
                 child: Padding(
@@ -212,24 +240,23 @@ class _StockEditScreenState extends ConsumerState<StockEditScreen> {
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           Container(
-                            width: 48,
-                            height: 48,
+                            width: 52,
+                            height: 52,
                             decoration: BoxDecoration(
                               color: kMedicalBlueLight,
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(14),
                             ),
-                            child: const Icon(Icons.medication,
-                                color: kMedicalBlue, size: 26),
+                            child: const Icon(Icons.medication_rounded,
+                                color: kMedicalBlue, size: 28),
                           ),
                           const SizedBox(width: 14),
                           Expanded(
                             child: Column(
-                              crossAxisAlignment:
-                                  CrossAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
                                   state.result!.nameAr,
-                                  style: const TextStyle(
+                                  style: GoogleFonts.cairo(
                                     fontSize: 18,
                                     fontWeight: FontWeight.w700,
                                     color: kTextPrimary,
@@ -239,9 +266,8 @@ class _StockEditScreenState extends ConsumerState<StockEditScreen> {
                                   const SizedBox(height: 2),
                                   Text(
                                     state.result!.nameEn!,
-                                    style: const TextStyle(
-                                        color: kTextSecondary,
-                                        fontSize: 13),
+                                    style: GoogleFonts.notoKufiArabic(
+                                        color: kTextSecondary, fontSize: 13),
                                   ),
                                 ],
                                 if (state.result!.form != null ||
@@ -254,9 +280,8 @@ class _StockEditScreenState extends ConsumerState<StockEditScreen> {
                                     ]
                                         .whereType<String>()
                                         .join(' — '),
-                                    style: const TextStyle(
-                                        color: kTextSecondary,
-                                        fontSize: 12),
+                                    style: GoogleFonts.notoKufiArabic(
+                                        color: kTextSecondary, fontSize: 12),
                                   ),
                                 ],
                               ],
@@ -265,23 +290,125 @@ class _StockEditScreenState extends ConsumerState<StockEditScreen> {
                         ],
                       ),
 
-                      const SizedBox(height: 16),
-                      Container(height: 1, color: kBg),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 20),
+                      const Divider(height: 1, color: kDivider),
+                      const SizedBox(height: 20),
 
-                      // Quantity field
-                      TextField(
-                        controller: _qtyCtrl,
-                        keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(
-                          labelText: 'الكمية المتاحة',
-                          prefixIcon:
-                              Icon(Icons.inventory_2_outlined),
+                      // Current quantity display — large amber number
+                      Center(
+                        child: Column(
+                          children: [
+                            Text(
+                              'الكمية الحالية',
+                              style: GoogleFonts.notoKufiArabic(
+                                fontSize: 13,
+                                color: kTextSecondary,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.baseline,
+                              textBaseline: TextBaseline.alphabetic,
+                              children: [
+                                Text(
+                                  '${state.result!.quantity}',
+                                  style: GoogleFonts.cairo(
+                                    fontSize: 36,
+                                    fontWeight: FontWeight.w800,
+                                    color: kAmber,
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  'وحدة',
+                                  style: GoogleFonts.notoKufiArabic(
+                                    fontSize: 14,
+                                    color: kTextSecondary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(height: 16),
 
-                      // Save button (full-width gradient)
+                      const SizedBox(height: 20),
+                      const Divider(height: 1, color: kDivider),
+                      const SizedBox(height: 20),
+
+                      // Quantity stepper
+                      Text(
+                        'تحديث الكمية',
+                        style: GoogleFonts.cairo(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: kMedicalBlue,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+
+                      Row(
+                        children: [
+                          // Decrement button
+                          _StepperButton(
+                            icon: Icons.remove_rounded,
+                            onTap: _decrement,
+                          ),
+                          const SizedBox(width: 12),
+
+                          // Qty text input
+                          Expanded(
+                            child: TextField(
+                              controller: _qtyCtrl,
+                              keyboardType: TextInputType.number,
+                              inputFormatters: [
+                                FilteringTextInputFormatter.digitsOnly,
+                              ],
+                              textAlign: TextAlign.center,
+                              style: GoogleFonts.cairo(
+                                fontSize: 22,
+                                fontWeight: FontWeight.w700,
+                                color: kTextPrimary,
+                              ),
+                              decoration: InputDecoration(
+                                filled: true,
+                                fillColor: kBg,
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                  borderSide:
+                                      const BorderSide(color: kDivider),
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                  borderSide:
+                                      const BorderSide(color: kDivider),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                  borderSide: const BorderSide(
+                                      color: kMedicalBlue, width: 2),
+                                ),
+                                contentPadding: const EdgeInsets.symmetric(
+                                    vertical: 14, horizontal: 8),
+                              ),
+                            ),
+                          ),
+
+                          const SizedBox(width: 12),
+
+                          // Increment button
+                          _StepperButton(
+                            icon: Icons.add_rounded,
+                            onTap: _increment,
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 20),
+
+                      // Save button — full-width gradient
                       _TapScale(
                         onTap: state.isSaving ? () {} : _save,
                         child: Container(
@@ -295,8 +422,7 @@ class _StockEditScreenState extends ConsumerState<StockEditScreen> {
                             borderRadius: BorderRadius.circular(16),
                             boxShadow: [
                               BoxShadow(
-                                color:
-                                    kMedicalBlue.withValues(alpha: 0.35),
+                                color: kMedicalBlue.withValues(alpha: 0.35),
                                 blurRadius: 16,
                                 offset: const Offset(0, 6),
                               ),
@@ -315,16 +441,15 @@ class _StockEditScreenState extends ConsumerState<StockEditScreen> {
                                         child: CircularProgressIndicator(
                                             strokeWidth: 2.5,
                                             color: Colors.white))
-                                    : const Row(
+                                    : Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
-                                          Icon(Icons.save_outlined,
-                                              color: Colors.white,
-                                              size: 20),
-                                          SizedBox(width: 8),
+                                          const Icon(Icons.save_rounded,
+                                              color: Colors.white, size: 20),
+                                          const SizedBox(width: 8),
                                           Text(
                                             'حفظ الكمية',
-                                            style: TextStyle(
+                                            style: GoogleFonts.cairo(
                                               color: Colors.white,
                                               fontWeight: FontWeight.w700,
                                               fontSize: 16,
@@ -348,13 +473,44 @@ class _StockEditScreenState extends ConsumerState<StockEditScreen> {
             // ── Instruction hint ──────────────────────────────────────────────
             Text(
               'ابحث باسم الدواء أو امسح الباركود أو اكتب رقم EDA يدوياً.',
-              style: TextStyle(
+              style: GoogleFonts.notoKufiArabic(
                   color: kTextSecondary.withValues(alpha: 0.6),
                   fontSize: 12),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Stepper button ─────────────────────────────────────────────────────────────
+class _StepperButton extends StatelessWidget {
+  const _StepperButton({required this.icon, required this.onTap});
+  final IconData icon;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return _TapScale(
+      onTap: onTap,
+      child: Container(
+        width: 52,
+        height: 52,
+        decoration: BoxDecoration(
+          color: kMedicalBlueLight,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: kDivider, width: 1),
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(14),
+            onTap: onTap,
+            child: Icon(icon, color: kMedicalBlue, size: 26),
+          ),
         ),
       ),
     );
@@ -374,7 +530,7 @@ class _TapScale extends StatefulWidget {
 class _TapScaleState extends State<_TapScale>
     with SingleTickerProviderStateMixin {
   late final AnimationController _ctrl = AnimationController(
-      vsync: this, duration: const Duration(milliseconds: 90));
+      vsync: this, duration: const Duration(milliseconds: 80));
   late final Animation<double> _scale = Tween(begin: 1.0, end: 0.96).animate(
       CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut));
 

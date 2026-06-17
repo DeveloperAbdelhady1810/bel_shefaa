@@ -12,7 +12,7 @@ class BelShefaaPatientApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(routerProvider);
     return MaterialApp.router(
-      title: 'بالشفاء',
+      title: 'Quota',
       debugShowCheckedModeBanner: false,
       theme: buildAppTheme(),
       locale: const Locale('ar'),

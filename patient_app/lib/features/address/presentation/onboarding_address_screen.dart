@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/theme/app_theme.dart';
 import '../application/address_controller.dart';
@@ -14,7 +15,8 @@ class OnboardingAddressScreen extends ConsumerStatefulWidget {
 }
 
 class _OnboardingAddressScreenState
-    extends ConsumerState<OnboardingAddressScreen> {
+    extends ConsumerState<OnboardingAddressScreen>
+    with TickerProviderStateMixin {
   final _lineCtrl = TextEditingController();
   final _cityCtrl = TextEditingController();
   double? _lat;
@@ -23,10 +25,35 @@ class _OnboardingAddressScreenState
   bool _saving = false;
   String? _error;
 
+  // Pin bounce animation
+  late final AnimationController _pinCtrl;
+  late final Animation<double> _pinBounce;
+
+  // GPS success pulse animation
+  late final AnimationController _pulseCtrl;
+  late final Animation<double> _pulseAnim;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _pinCtrl = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 900));
+    _pinBounce = CurvedAnimation(parent: _pinCtrl, curve: Curves.bounceOut);
+    _pinCtrl.forward();
+
+    _pulseCtrl = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 1200));
+    _pulseAnim = Tween<double>(begin: 0.97, end: 1.03).animate(
+        CurvedAnimation(parent: _pulseCtrl, curve: Curves.easeInOut));
+  }
+
   @override
   void dispose() {
     _lineCtrl.dispose();
     _cityCtrl.dispose();
+    _pinCtrl.dispose();
+    _pulseCtrl.dispose();
     super.dispose();
   }
 
@@ -48,6 +75,8 @@ class _OnboardingAddressScreenState
       _lng = pos.longitude;
       _locating = false;
     });
+    // Start pulse animation on success
+    _pulseCtrl.repeat(reverse: true);
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('تم تحديد موقعك الحالي ✓')),
@@ -92,10 +121,8 @@ class _OnboardingAddressScreenState
         children: [
           // ── Gradient header ────────────────────────────────────────
           Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            height: size.height * 0.38,
+            top: 0, left: 0, right: 0,
+            height: size.height * 0.40,
             child: Container(
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
@@ -108,22 +135,33 @@ class _OnboardingAddressScreenState
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.location_on,
-                        color: Colors.white, size: 64),
-                    const SizedBox(height: 12),
-                    const Text(
+                    // Animated bouncing location pin
+                    ScaleTransition(
+                      scale: _pinBounce,
+                      child: Container(
+                        width: 80, height: 80,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.15),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.location_on_rounded,
+                            color: Colors.white, size: 44),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
                       'حدد عنوانك',
-                      style: TextStyle(
+                      style: GoogleFonts.cairo(
                         color: Colors.white,
-                        fontSize: 24,
+                        fontSize: 26,
                         fontWeight: FontWeight.w800,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       'نوصل دواءك لباب بيتك',
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.70),
+                      style: GoogleFonts.notoKufiArabic(
+                        color: Colors.white.withValues(alpha: 0.75),
                         fontSize: 14,
                       ),
                     ),
@@ -133,12 +171,10 @@ class _OnboardingAddressScreenState
             ),
           ),
 
-          // ── White bottom card (overlapping gradient) ───────────────
+          // ── White bottom card ──────────────────────────────────────
           Positioned(
-            top: size.height * 0.32,
-            left: 0,
-            right: 0,
-            bottom: 0,
+            top: size.height * 0.34,
+            left: 0, right: 0, bottom: 0,
             child: Container(
               decoration: const BoxDecoration(
                 color: kSurface,
@@ -146,67 +182,82 @@ class _OnboardingAddressScreenState
                     BorderRadius.vertical(top: Radius.circular(32)),
               ),
               child: SingleChildScrollView(
-                padding:
-                    const EdgeInsets.fromLTRB(24, 28, 24, 24),
+                padding: const EdgeInsets.fromLTRB(24, 28, 24, 24),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     // GPS Button
-                    _locating
-                        ? OutlinedButton.icon(
-                            onPressed: null,
-                            icon: const SizedBox(
-                              width: 18,
-                              height: 18,
-                              child: CircularProgressIndicator(
-                                  strokeWidth: 2, color: kMedicalBlue),
-                            ),
-                            label: const Text('جارٍ تحديد الموقع...'),
-                          )
-                        : _lat != null
-                            ? Container(
-                                height: 56,
-                                decoration: BoxDecoration(
-                                  color: kGreenLight,
-                                  borderRadius: BorderRadius.circular(16),
-                                  border: Border.all(
-                                      color: kSuccess.withValues(alpha: 0.4)),
-                                ),
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.center,
-                                  children: [
-                                    const Icon(Icons.check_circle,
-                                        color: kSuccess, size: 22),
-                                    const SizedBox(width: 8),
-                                    const Text(
-                                      'تم تحديد الموقع ✓',
-                                      style: TextStyle(
-                                          color: kSuccess,
-                                          fontWeight: FontWeight.w600,
-                                          fontSize: 15),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    GestureDetector(
-                                      onTap: _useGps,
-                                      child: const Text(
-                                        'تحديث',
-                                        style: TextStyle(
-                                            color: kMedicalBlue,
-                                            fontSize: 12,
-                                            decoration:
-                                                TextDecoration.underline),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              )
-                            : OutlinedButton.icon(
-                                onPressed: _useGps,
-                                icon: const Icon(Icons.my_location),
-                                label:
-                                    const Text('استخدم موقعي الحالي'),
+                    if (_locating)
+                      OutlinedButton.icon(
+                        onPressed: null,
+                        icon: const SizedBox(
+                          width: 18, height: 18,
+                          child: CircularProgressIndicator(
+                              strokeWidth: 2, color: kMedicalBlue),
+                        ),
+                        label: Text(
+                          'جارٍ تحديد الموقع...',
+                          style: GoogleFonts.cairo(
+                              color: kMedicalBlue,
+                              fontWeight: FontWeight.w600),
+                        ),
+                      )
+                    else if (_lat != null)
+                      // GPS success card with pulse
+                      AnimatedBuilder(
+                        animation: _pulseAnim,
+                        builder: (context, child) => Transform.scale(
+                          scale: _pulseCtrl.isAnimating
+                              ? _pulseAnim.value
+                              : 1.0,
+                          child: child,
+                        ),
+                        child: Container(
+                          height: 56,
+                          decoration: BoxDecoration(
+                            color: kSuccessLight,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                                color: kSuccess.withValues(alpha: 0.5)),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(Icons.check_circle_rounded,
+                                  color: kSuccess, size: 22),
+                              const SizedBox(width: 8),
+                              Text(
+                                'تم تحديد الموقع ✓',
+                                style: GoogleFonts.cairo(
+                                    color: kSuccess,
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 15),
                               ),
+                              const SizedBox(width: 12),
+                              GestureDetector(
+                                onTap: _useGps,
+                                child: Text(
+                                  'تحديث',
+                                  style: GoogleFonts.cairo(
+                                      color: kMedicalBlue,
+                                      fontSize: 12,
+                                      decoration: TextDecoration.underline),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
+                    else
+                      OutlinedButton.icon(
+                        onPressed: _useGps,
+                        icon: const Icon(Icons.my_location),
+                        label: Text(
+                          'استخدم موقعي الحالي',
+                          style: GoogleFonts.cairo(
+                              fontWeight: FontWeight.w600),
+                        ),
+                      ),
 
                     const SizedBox(height: 20),
 
@@ -226,8 +277,7 @@ class _OnboardingAddressScreenState
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(14),
-                          borderSide:
-                              const BorderSide(color: Color(0xFFE2E8F0)),
+                          borderSide: const BorderSide(color: kDivider),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(14),
@@ -256,8 +306,7 @@ class _OnboardingAddressScreenState
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(14),
-                          borderSide:
-                              const BorderSide(color: Color(0xFFE2E8F0)),
+                          borderSide: const BorderSide(color: kDivider),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(14),
@@ -276,12 +325,14 @@ class _OnboardingAddressScreenState
                         padding: const EdgeInsets.symmetric(
                             horizontal: 14, vertical: 10),
                         decoration: BoxDecoration(
-                          color: kError.withValues(alpha: 0.08),
+                          color: kErrorLight,
                           borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                              color: kError.withValues(alpha: 0.25)),
                         ),
                         child: Text(
                           _error!,
-                          style: const TextStyle(
+                          style: GoogleFonts.notoKufiArabic(
                               color: kError, fontSize: 13),
                           textAlign: TextAlign.center,
                         ),
@@ -303,9 +354,9 @@ class _OnboardingAddressScreenState
                     // Skip
                     TextButton(
                       onPressed: () => context.go('/home'),
-                      child: const Text(
+                      child: Text(
                         'تخطي الآن',
-                        style: TextStyle(
+                        style: GoogleFonts.notoKufiArabic(
                             color: kTextSecondary, fontSize: 13),
                       ),
                     ),
@@ -345,7 +396,7 @@ class _GradientButton extends StatefulWidget {
 class _GradientButtonState extends State<_GradientButton>
     with SingleTickerProviderStateMixin {
   late final AnimationController _ctrl = AnimationController(
-      vsync: this, duration: const Duration(milliseconds: 90));
+      vsync: this, duration: const Duration(milliseconds: 80));
   late final Animation<double> _scale =
       Tween(begin: 1.0, end: 0.96).animate(
           CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut));
@@ -360,9 +411,7 @@ class _GradientButtonState extends State<_GradientButton>
   Widget build(BuildContext context) => ScaleTransition(
         scale: _scale,
         child: GestureDetector(
-          onTapDown: (_) {
-            if (!widget.loading) _ctrl.forward();
-          },
+          onTapDown: (_) { if (!widget.loading) _ctrl.forward(); },
           onTapUp: (_) {
             _ctrl.reverse();
             if (!widget.loading) widget.onPressed();
@@ -388,8 +437,7 @@ class _GradientButtonState extends State<_GradientButton>
             child: Center(
               child: widget.loading
                   ? const SizedBox(
-                      width: 22,
-                      height: 22,
+                      width: 22, height: 22,
                       child: CircularProgressIndicator(
                           color: Colors.white, strokeWidth: 2.5),
                     )
@@ -402,7 +450,7 @@ class _GradientButtonState extends State<_GradientButton>
                         ],
                         Text(
                           widget.label,
-                          style: const TextStyle(
+                          style: GoogleFonts.cairo(
                             color: Colors.white,
                             fontWeight: FontWeight.w700,
                             fontSize: 16,

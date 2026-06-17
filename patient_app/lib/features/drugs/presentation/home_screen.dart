@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/theme/app_theme.dart';
 import '../../auth/application/auth_controller.dart';
@@ -47,7 +49,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final authAsync = ref.watch(authControllerProvider);
-    final patient = authAsync.valueOrNull;
+    final patient  = authAsync.valueOrNull;
     final name = patient is AuthAuthenticated ? patient.patient.name : '';
 
     return Scaffold(
@@ -56,11 +58,28 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         slivers: [
           // ── Gradient SliverAppBar ──────────────────────────────────
           SliverAppBar(
-            expandedHeight: 120,
+            expandedHeight: 200,
             pinned: true,
-            backgroundColor: kMedicalBlue,
+            backgroundColor: kMedicalBlueDark,
             foregroundColor: Colors.white,
+            systemOverlayStyle: SystemUiOverlayStyle.light,
+            actions: [
+              IconButton(
+                icon: Container(
+                  width: 36, height: 36,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.15),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.person_outline,
+                      color: Colors.white, size: 20),
+                ),
+                onPressed: () => context.push('/profile'),
+              ),
+              const SizedBox(width: 8),
+            ],
             flexibleSpace: FlexibleSpaceBar(
+              collapseMode: CollapseMode.pin,
               background: Container(
                 decoration: const BoxDecoration(
                   gradient: LinearGradient(
@@ -71,25 +90,23 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ),
                 child: SafeArea(
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          name.isNotEmpty
-                              ? 'مرحباً، $name'
-                              : 'مرحباً بك',
-                          style: const TextStyle(
+                          name.isNotEmpty ? 'أهلاً، $name 👋' : 'أهلاً بك 👋',
+                          style: GoogleFonts.cairo(
                             color: Colors.white,
-                            fontSize: 22,
+                            fontSize: 28,
                             fontWeight: FontWeight.w800,
                           ),
                         ),
-                        const SizedBox(height: 2),
+                        const SizedBox(height: 4),
                         Text(
-                          'ابحث عن دوائك الآن',
-                          style: TextStyle(
+                          'ابحث عن دوائك، نوصّله لباب بيتك',
+                          style: GoogleFonts.notoKufiArabic(
                             color: Colors.white.withValues(alpha: 0.75),
                             fontSize: 14,
                           ),
@@ -100,27 +117,28 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ),
               ),
             ),
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.person_outline),
-                onPressed: () => context.push('/profile'),
-              ),
-            ],
           ),
 
-          // ── Search bar (pinned below app bar) ──────────────────────
+          // ── Floating search bar overlapping gradient ───────────────
           SliverToBoxAdapter(
-            child: _SearchBar(
-              controller: _searchCtrl,
-              searching: _searching,
-              onTap: _openSearch,
-              onClose: _closeSearch,
-              onChanged: (q) =>
-                  ref.read(drugSearchControllerProvider.notifier).onQueryChanged(q),
+            child: Transform.translate(
+              offset: const Offset(0, -28),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: _SearchBar(
+                  controller: _searchCtrl,
+                  searching: _searching,
+                  onTap: _openSearch,
+                  onClose: _closeSearch,
+                  onChanged: (q) => ref
+                      .read(drugSearchControllerProvider.notifier)
+                      .onQueryChanged(q),
+                ),
+              ),
             ),
           ),
 
-          // ── Content: home or search results ───────────────────────
+          // ── Content ────────────────────────────────────────────────
           if (_searching)
             SliverFillRemaining(
               child: _SearchResultsPanel(onDrugTap: _onDrugTap),
@@ -130,7 +148,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               onCategoryTap: (q) {
                 _searchCtrl.text = q;
                 _openSearch();
-                ref.read(drugSearchControllerProvider.notifier).onQueryChanged(q);
+                ref
+                    .read(drugSearchControllerProvider.notifier)
+                    .onQueryChanged(q);
               },
             ).buildSlivers(context, ref),
         ],
@@ -139,7 +159,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 }
 
-// ─── Search Bar ───────────────────────────────────────────────────────────────
+// ─── Floating Search Bar ──────────────────────────────────────────────────────
 
 class _SearchBar extends StatelessWidget {
   const _SearchBar({
@@ -159,82 +179,83 @@ class _SearchBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: kMedicalBlue,
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-      child: Container(
-        height: 52,
-        decoration: BoxDecoration(
-          color: kSurface,
-          borderRadius: BorderRadius.circular(28),
-          boxShadow: const [
-            BoxShadow(
-                color: kCardShadowBlue,
-                blurRadius: 16,
-                offset: Offset(0, 4)),
-          ],
-        ),
-        child: Row(
-          children: [
-            const SizedBox(width: 16),
-            const Icon(Icons.search, color: kMedicalBlue, size: 22),
-            const SizedBox(width: 10),
-            Expanded(
-              child: searching
-                  ? TextField(
-                      controller: controller,
-                      onChanged: onChanged,
-                      autofocus: true,
-                      style: const TextStyle(
-                          color: kTextPrimary, fontSize: 15),
-                      decoration: const InputDecoration(
-                        hintText: 'ابحث عن دواءك...',
-                        hintStyle:
-                            TextStyle(color: kTextSecondary, fontSize: 15),
-                        border: InputBorder.none,
-                        isDense: true,
-                        contentPadding: EdgeInsets.zero,
-                        fillColor: Colors.transparent,
-                        filled: false,
-                      ),
-                    )
-                  : GestureDetector(
-                      onTap: onTap,
-                      behavior: HitTestBehavior.opaque,
-                      child: const Text(
-                        'ابحث عن دواءك...',
-                        style: TextStyle(
-                            color: kTextSecondary, fontSize: 15),
-                      ),
+      height: 56,
+      decoration: BoxDecoration(
+        color: kSurface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: kDivider),
+        boxShadow: const [
+          BoxShadow(color: kShadowBlue, blurRadius: 20, offset: Offset(0, 6)),
+          BoxShadow(color: kShadowDeep, blurRadius: 4, offset: Offset(0, 2)),
+        ],
+      ),
+      child: Row(
+        children: [
+          const SizedBox(width: 16),
+          const Icon(Icons.search_rounded, color: kMedicalBlue, size: 22),
+          const SizedBox(width: 10),
+          Expanded(
+            child: searching
+                ? TextField(
+                    controller: controller,
+                    onChanged: onChanged,
+                    autofocus: true,
+                    style: GoogleFonts.notoKufiArabic(
+                        color: kTextPrimary, fontSize: 15),
+                    decoration: InputDecoration(
+                      hintText: 'ابحث عن دوائك...',
+                      hintStyle: GoogleFonts.notoKufiArabic(
+                          color: kTextSecondary, fontSize: 15),
+                      border: InputBorder.none,
+                      isDense: true,
+                      contentPadding: EdgeInsets.zero,
+                      fillColor: Colors.transparent,
+                      filled: false,
                     ),
-            ),
-            if (searching)
-              IconButton(
-                icon: const Icon(Icons.close, color: kTextSecondary, size: 20),
-                onPressed: onClose,
-                padding: EdgeInsets.zero,
-              )
-            else
-              const SizedBox(width: 16),
-          ],
-        ),
+                  )
+                : GestureDetector(
+                    onTap: onTap,
+                    behavior: HitTestBehavior.opaque,
+                    child: Text(
+                      'ابحث عن دوائك...',
+                      style: GoogleFonts.notoKufiArabic(
+                          color: kTextSecondary, fontSize: 15),
+                    ),
+                  ),
+          ),
+          if (searching)
+            IconButton(
+              icon: const Icon(Icons.close, color: kTextSecondary, size: 20),
+              onPressed: onClose,
+              padding: EdgeInsets.zero,
+            )
+          else
+            const SizedBox(width: 16),
+        ],
       ),
     );
   }
 }
 
-// ─── Home Content (returns slivers) ──────────────────────────────────────────
+// ─── Home Content (slivers) ───────────────────────────────────────────────────
 
 class _HomeContent {
   const _HomeContent({required this.onCategoryTap});
   final ValueChanged<String> onCategoryTap;
 
+  // (label, emoji, query)
   static const _categories = [
-    ('ضغط الدم', Icons.favorite_outline, 'ضغط'),
-    ('السكري', Icons.bloodtype_outlined, 'سكري'),
-    ('الغدة الدرقية', Icons.biotech_outlined, 'غدة'),
-    ('مضادات حيوية', Icons.medication_outlined, 'مضاد حيوي'),
-    ('مسكنات', Icons.healing_outlined, 'مسكن'),
-    ('مكملات غذائية', Icons.emoji_food_beverage_outlined, 'فيتامين'),
+    ('ضغط الدم',         Icons.favorite_outline,       'ضغط'),
+    ('السكري',           Icons.bloodtype_outlined,      'سكري'),
+    ('الغدة الدرقية',   Icons.biotech_outlined,        'غدة'),
+    ('مضادات حيوية',    Icons.medication_outlined,     'مضاد حيوي'),
+    ('مسكنات',           Icons.healing_outlined,        'مسكن'),
+    ('مكملات غذائية',   Icons.emoji_food_beverage_outlined, 'فيتامين'),
+  ];
+
+  static const _activeChipColors = [
+    kAmber, kMedicalBlue, Color(0xFF7C3AED), kError,
+    kSuccess, kAmber,
   ];
 
   List<Widget> buildSlivers(BuildContext context, WidgetRef ref) {
@@ -244,37 +265,36 @@ class _HomeContent {
       // Categories header
       SliverToBoxAdapter(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 24, 20, 12),
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
           child: Text(
             'فئات سريعة',
-            style: Theme.of(context)
-                .textTheme
-                .titleMedium
-                ?.copyWith(fontWeight: FontWeight.w700, color: kTextPrimary),
+            style: GoogleFonts.cairo(
+                fontWeight: FontWeight.w700,
+                fontSize: 17,
+                color: kTextPrimary),
           ),
         ),
       ),
 
-      // Categories grid
-      SliverPadding(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        sliver: SliverGrid(
-          delegate: SliverChildBuilderDelegate(
-            (context, i) {
+      // Categories horizontal scroll
+      SliverToBoxAdapter(
+        child: SizedBox(
+          height: 100,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            itemCount: _categories.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 12),
+            itemBuilder: (context, i) {
               final (label, icon, query) = _categories[i];
+              final color = _activeChipColors[i % _activeChipColors.length];
               return _CategoryChip(
                 label: label,
                 icon: icon,
+                accentColor: color,
                 onTap: () => onCategoryTap(query),
               );
             },
-            childCount: _categories.length,
-          ),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 3,
-            mainAxisSpacing: 12,
-            crossAxisSpacing: 12,
-            childAspectRatio: 1.05,
           ),
         ),
       ),
@@ -288,43 +308,47 @@ class _HomeContent {
             children: [
               Text(
                 'آخر طلباتك',
-                style: Theme.of(context)
-                    .textTheme
-                    .titleMedium
-                    ?.copyWith(
-                        fontWeight: FontWeight.w700, color: kTextPrimary),
+                style: GoogleFonts.cairo(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 17,
+                    color: kTextPrimary),
               ),
-              TextButton(
-                onPressed: () => context.push('/orders-history'),
-                child: const Text('عرض الكل',
-                    style: TextStyle(color: kMedicalBlue)),
+              GestureDetector(
+                onTap: () => context.push('/orders-history'),
+                child: Text(
+                  'عرض الكل',
+                  style: GoogleFonts.cairo(
+                      color: kMedicalBlue,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600),
+                ),
               ),
             ],
           ),
         ),
       ),
 
-      // Recent orders list
+      // Recent orders
       ordersAsync.when(
         loading: () => const SliverToBoxAdapter(
           child: Center(
-            child: Padding(
-                padding: EdgeInsets.all(16),
-                child: CircularProgressIndicator()),
-          ),
+              child: Padding(
+                  padding: EdgeInsets.all(16),
+                  child: CircularProgressIndicator())),
         ),
         error: (_, __) => const SliverToBoxAdapter(
           child: Center(child: Text('تعذّر تحميل الطلبات')),
         ),
         data: (orders) {
           if (orders.isEmpty) {
-            return const SliverToBoxAdapter(
+            return SliverToBoxAdapter(
               child: Padding(
-                padding: EdgeInsets.all(32),
+                padding: const EdgeInsets.all(32),
                 child: Center(
                   child: Text(
                     'لا توجد طلبات سابقة',
-                    style: TextStyle(color: kTextSecondary),
+                    style: GoogleFonts.notoKufiArabic(
+                        color: kTextSecondary),
                   ),
                 ),
               ),
@@ -332,7 +356,7 @@ class _HomeContent {
           }
           final recent = orders.take(3).toList();
           return SliverPadding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 40),
             sliver: SliverList(
               delegate: SliverChildBuilderDelegate(
                 (context, i) => Padding(
@@ -352,10 +376,15 @@ class _HomeContent {
 // ─── Category Chip ────────────────────────────────────────────────────────────
 
 class _CategoryChip extends StatelessWidget {
-  const _CategoryChip(
-      {required this.label, required this.icon, required this.onTap});
+  const _CategoryChip({
+    required this.label,
+    required this.icon,
+    required this.accentColor,
+    required this.onTap,
+  });
   final String label;
   final IconData icon;
+  final Color accentColor;
   final VoidCallback onTap;
 
   @override
@@ -363,44 +392,37 @@ class _CategoryChip extends StatelessWidget {
     return _TapScale(
       onTap: onTap,
       child: Container(
+        width: 80,
         decoration: BoxDecoration(
           color: kSurface,
           borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: kDivider),
           boxShadow: const [
-            BoxShadow(
-                color: kCardShadowBlue,
-                blurRadius: 16,
-                offset: Offset(0, 4)),
-            BoxShadow(
-                color: Color(0x06000000),
-                blurRadius: 4,
-                offset: Offset(0, 1)),
+            BoxShadow(color: kShadowBlue, blurRadius: 16, offset: Offset(0, 4)),
+            BoxShadow(color: kShadowDeep, blurRadius: 4, offset: Offset(0, 2)),
           ],
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              width: 44,
-              height: 44,
+              width: 44, height: 44,
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [kMedicalBlue, kMedicalBlueDark],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(14),
+                color: accentColor.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(13),
               ),
-              child: Icon(icon, color: Colors.white, size: 22),
+              child: Icon(icon, color: accentColor, size: 22),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             Text(
               label,
-              style: const TextStyle(
-                  fontSize: 11,
+              style: GoogleFonts.cairo(
+                  fontSize: 10,
                   fontWeight: FontWeight.w600,
                   color: kTextPrimary),
               textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ],
         ),
@@ -427,30 +449,16 @@ class _RecentOrderCard extends StatelessWidget {
     return _TapScale(
       onTap: () => context.push('/tracking/${order.id}'),
       child: Container(
-        decoration: BoxDecoration(
-          color: kSurface,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: const [
-            BoxShadow(
-                color: kCardShadowBlue,
-                blurRadius: 24,
-                offset: Offset(0, 6)),
-            BoxShadow(
-                color: Color(0x06000000),
-                blurRadius: 6,
-                offset: Offset(0, 1)),
-          ],
-        ),
+        decoration: kCardDecoration(),
         child: Row(
           children: [
             // Left accent bar
             Container(
-              width: 4,
-              height: 64,
+              width: 4, height: 64,
               decoration: BoxDecoration(
                 color: _statusColor,
-                borderRadius: const BorderRadius.horizontal(
-                    left: Radius.circular(16)),
+                borderRadius:
+                    const BorderRadius.horizontal(left: Radius.circular(20)),
               ),
             ),
             const SizedBox(width: 14),
@@ -465,21 +473,21 @@ class _RecentOrderCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(drugName,
-                      style: const TextStyle(
+                      style: GoogleFonts.cairo(
                           fontWeight: FontWeight.w600,
                           fontSize: 14,
                           color: kTextPrimary)),
                   const SizedBox(height: 3),
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 8, vertical: 2),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(
                       color: _statusColor.withValues(alpha: 0.10),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
                       order.status.label,
-                      style: TextStyle(
+                      style: GoogleFonts.cairo(
                           fontSize: 11,
                           color: _statusColor,
                           fontWeight: FontWeight.w600),
@@ -508,9 +516,9 @@ class _SearchResultsPanel extends ConsumerWidget {
     final state = ref.watch(drugSearchControllerProvider);
 
     if (state.query.trim().length < 2) {
-      return const Center(
+      return Center(
         child: Text('اكتب اسم الدواء للبحث',
-            style: TextStyle(color: kTextSecondary)),
+            style: GoogleFonts.notoKufiArabic(color: kTextSecondary)),
       );
     }
 
@@ -521,18 +529,19 @@ class _SearchResultsPanel extends ConsumerWidget {
     if (state.error != null) {
       return Center(
           child: Text(state.error!,
-              style: const TextStyle(color: kError)));
+              style: GoogleFonts.notoKufiArabic(color: kError)));
     }
 
     if (state.results.isEmpty) {
-      return const Center(
+      return Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.search_off, size: 56, color: kTextSecondary),
-            SizedBox(height: 12),
+            const Icon(Icons.search_off, size: 56, color: kTextSecondary),
+            const SizedBox(height: 12),
             Text('لم يتم العثور على نتائج',
-                style: TextStyle(color: kTextSecondary, fontSize: 15)),
+                style: GoogleFonts.notoKufiArabic(
+                    color: kTextSecondary, fontSize: 15)),
           ],
         ),
       );
@@ -569,29 +578,15 @@ class _DrugSearchTile extends StatelessWidget {
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: kSurface,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: const [
-            BoxShadow(
-                color: kCardShadowBlue,
-                blurRadius: 24,
-                offset: Offset(0, 6)),
-            BoxShadow(
-                color: Color(0x06000000),
-                blurRadius: 6,
-                offset: Offset(0, 1)),
-          ],
-        ),
+        decoration: kCardDecoration(),
         child: Row(
           children: [
             CircleAvatar(
               backgroundColor: drug.available
-                  ? kMedicalBlueLight
-                  : const Color(0xFFF3F4F6),
+                  ? kSuccessLight
+                  : kAmberLight,
               child: Icon(Icons.medication,
-                  color: drug.available ? kMedicalBlue : kTextSecondary,
-                  size: 20),
+                  color: drug.available ? kSuccess : kAmber, size: 20),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -599,14 +594,14 @@ class _DrugSearchTile extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(drug.nameAr,
-                      style: const TextStyle(
+                      style: GoogleFonts.cairo(
                           fontWeight: FontWeight.w700,
                           fontSize: 16,
                           color: kTextPrimary)),
                   if (sub.isNotEmpty) ...[
                     const SizedBox(height: 3),
                     Text(sub,
-                        style: const TextStyle(
+                        style: GoogleFonts.notoKufiArabic(
                             color: kTextSecondary, fontSize: 12),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis),
@@ -616,18 +611,17 @@ class _DrugSearchTile extends StatelessWidget {
             ),
             const SizedBox(width: 8),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
-                color: drug.available
-                    ? kGreenLight
-                    : kWarning.withValues(alpha: 0.12),
+                color: drug.available ? kSuccessLight : kAmberLight,
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
                 drug.available ? 'متوفر' : 'نادر',
-                style: TextStyle(
+                style: GoogleFonts.cairo(
                     fontSize: 11,
-                    color: drug.available ? kSuccess : kWarning,
+                    color: drug.available ? kSuccess : kAmber,
                     fontWeight: FontWeight.w600),
               ),
             ),
@@ -654,7 +648,7 @@ class _TapScaleState extends State<_TapScale>
   late final AnimationController _ctrl = AnimationController(
       vsync: this, duration: const Duration(milliseconds: 80));
   late final Animation<double> _scale =
-      Tween(begin: 1.0, end: 0.95).animate(
+      Tween(begin: 1.0, end: 0.96).animate(
           CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut));
 
   @override

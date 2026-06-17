@@ -13,7 +13,7 @@ class BelShefaaPharmacyApp extends ConsumerWidget {
     final router = ref.watch(routerProvider);
 
     return MaterialApp.router(
-      title: 'بالشفاء — الصيدلية',
+      title: 'Quota Pharmacy',
       debugShowCheckedModeBanner: false,
       theme: buildAppTheme(),
       routerConfig: router,
