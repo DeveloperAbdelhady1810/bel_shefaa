@@ -28,6 +28,26 @@ class DrugRepository {
           : ApiException('تعذّر البحث.');
     }
   }
+
+  Future<List<DrugResult>> byCategory(String slug,
+      {double? lat, double? lng}) async {
+    try {
+      final res = await _dio.get(ApiPaths.drugsByCategory, queryParameters: {
+        'slug': slug,
+        if (lat != null) 'lat': lat,
+        if (lng != null) 'lng': lng,
+      });
+      final data = res.data['data'] as List<dynamic>;
+      return data
+          .map((e) =>
+              DrugResult.fromJson(Map<String, dynamic>.from(e as Map)))
+          .toList();
+    } on DioException catch (e) {
+      throw e.error is ApiException
+          ? e.error as ApiException
+          : ApiException('تعذّر تحميل هذا القسم.');
+    }
+  }
 }
 
 final drugRepositoryProvider = Provider<DrugRepository>(

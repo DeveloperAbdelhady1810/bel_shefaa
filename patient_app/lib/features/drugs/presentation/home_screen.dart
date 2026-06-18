@@ -13,57 +13,60 @@ import '../application/drug_search_controller.dart';
 import '../domain/drug_result.dart';
 
 // ─── Category data ─────────────────────────────────────────────────────────────
+// `slug` maps to the backend's curated `drug_categories`-based grouping
+// (see DrugSearchController::CATEGORY_KEYWORDS) — not free-text search,
+// since generic Arabic disease terms rarely match brand-name drug rows.
 class _Cat {
-  const _Cat(this.label, this.query, this.imageUrl);
+  const _Cat(this.label, this.slug, this.imageUrl);
   final String label;
-  final String query;
+  final String slug;
   final String imageUrl;
 }
 
 const _kCategories = [
   _Cat(
     'مضادات حيوية',
-    'مضاد حيوي',
+    'antibiotics',
     'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400&h=400&fit=crop&q=75',
   ),
   _Cat(
-    'ضغط الدم',
-    'ضغط',
+    'ضغط الدم والقلب',
+    'heart_bp',
     'https://images.unsplash.com/photo-1505751172876-fa1923c5c528?w=400&h=400&fit=crop&q=75',
   ),
   _Cat(
     'السكري',
-    'سكري',
+    'diabetes',
     'https://images.unsplash.com/photo-1593538312308-d4c29d8dc7f1?w=400&h=400&fit=crop&q=75',
   ),
   _Cat(
-    'مسكنات ألم',
-    'مسكن',
+    'مسكنات الألم',
+    'pain',
     'https://images.unsplash.com/photo-1607619056574-7b8d3ee536b2?w=400&h=400&fit=crop&q=75',
   ),
   _Cat(
-    'فيتامينات',
-    'فيتامين',
+    'فيتامينات ومكملات',
+    'vitamins',
     'https://images.unsplash.com/photo-1550572017-edd951b55104?w=400&h=400&fit=crop&q=75',
   ),
   _Cat(
-    'الغدة الدرقية',
-    'غدة',
-    'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=400&h=400&fit=crop&q=75',
-  ),
-  _Cat(
-    'أدوية الأطفال',
-    'اطفال',
-    'https://images.unsplash.com/photo-1632833239869-a37e3a5806d2?w=400&h=400&fit=crop&q=75',
-  ),
-  _Cat(
-    'بدون روشتة',
-    'دون روشتة',
+    'الكحة والبرد',
+    'cough_cold',
     'https://images.unsplash.com/photo-1631549916768-4119b2e5f926?w=400&h=400&fit=crop&q=75',
   ),
   _Cat(
+    'أدوية الأطفال',
+    'children',
+    'https://images.unsplash.com/photo-1632833239869-a37e3a5806d2?w=400&h=400&fit=crop&q=75',
+  ),
+  _Cat(
+    'العين والأذن',
+    'eye_ear',
+    'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=400&h=400&fit=crop&q=75',
+  ),
+  _Cat(
     'عناية بالبشرة',
-    'بشرة',
+    'skincare',
     'https://images.unsplash.com/photo-1556228578-8c89e6adf883?w=400&h=400&fit=crop&q=75',
   ),
 ];
@@ -98,10 +101,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     FocusScope.of(context).unfocus();
   }
 
-  void _onCategoryTap(String query) {
-    _searchCtrl.text = query;
-    _openSearch();
-    ref.read(drugSearchControllerProvider.notifier).onQueryChanged(query);
+  void _onCategoryTap(String slug, String label) {
+    _searchCtrl.text = label;
+    setState(() => _searching = true);
+    ref.read(drugSearchControllerProvider.notifier).loadCategory(slug, label);
   }
 
   void _onDrugTap(DrugResult drug) {
@@ -346,7 +349,7 @@ class _SearchBar extends StatelessWidget {
 // ─── Home Body ─────────────────────────────────────────────────────────────────
 class _HomeBody extends ConsumerWidget {
   const _HomeBody({required this.onCategoryTap});
-  final ValueChanged<String> onCategoryTap;
+  final void Function(String slug, String label) onCategoryTap;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -383,7 +386,7 @@ class _HomeBody extends ConsumerWidget {
           itemCount: _kCategories.length,
           itemBuilder: (context, i) => _PhotoCategoryCard(
             cat: _kCategories[i],
-            onTap: () => onCategoryTap(_kCategories[i].query),
+            onTap: () => onCategoryTap(_kCategories[i].slug, _kCategories[i].label),
           ),
         ),
 

@@ -11,6 +11,7 @@ class ApiPaths {
 
   // Drugs
   static const String drugsSearch = '/drugs/search';
+  static const String drugsByCategory = '/drugs/by-category';
 
   // Orders
   static const String orders = '/patient/orders';

@@ -68,6 +68,23 @@ class DrugSearchController extends Notifier<DrugSearchState> {
     }
   }
 
+  /// Loads a curated home-screen category (server-side grouping by real
+  /// drug_categories metadata) instead of free-text search.
+  Future<void> loadCategory(String slug, String label) async {
+    _debounce?.cancel();
+    state = state.copyWith(
+        query: label, results: [], isLoading: true, clearError: true);
+    try {
+      final results = await ref
+          .read(drugRepositoryProvider)
+          .byCategory(slug, lat: _lat, lng: _lng);
+      state = state.copyWith(results: results, isLoading: false);
+    } catch (e) {
+      state = state.copyWith(
+          isLoading: false, error: e.toString(), results: []);
+    }
+  }
+
   void clear() {
     _debounce?.cancel();
     state = const DrugSearchState();
