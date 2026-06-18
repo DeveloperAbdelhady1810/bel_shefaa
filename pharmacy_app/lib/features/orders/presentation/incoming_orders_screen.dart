@@ -27,21 +27,13 @@ class IncomingOrdersScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: kBg,
       appBar: AppBar(
+        backgroundColor: kMedicalBlue,
         title: Text(
           pharmacyName,
           style: GoogleFonts.cairo(
             color: Colors.white,
             fontSize: 18,
             fontWeight: FontWeight.w700,
-          ),
-        ),
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [kMedicalBlueDark, kMedicalBlue],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
           ),
         ),
         actions: [
